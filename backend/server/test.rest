@@ -19,8 +19,35 @@ Content-Type: application/json
 
 ###
 GET http://localhost:8081/user/getAll
+Content-Type: application/json/Rating
+
+###
+
+GET http://localhost:8081/ratings/getAll
 Content-Type: application/json
 
+###
+
+POST https://localhost:8081/ratings/editRatings
+Content-Type application/json
+{
+    {
+        "_id":"643f17b1a241318be6043ec7",
+        "username":"Nand Patel",
+        "stationName":"Government Center",
+        "ratings":2,
+        "comments":"Sprint 4 in progress!!!",
+        "date":"2023-04-18T22:20:33.905Z","__v":0
+    }
+}
+
+
+###
+
+POST http://localhost:8081/ratings/add
+Content-Type application/json
+
+###
 ###
 
 POST http://localhost:8081/user/editUser

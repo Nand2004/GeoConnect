@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "aws-sdk": "^2.1360.0",
+    "react-icons": "^4.8.0"
+  }
+}

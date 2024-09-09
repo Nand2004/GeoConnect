@@ -5,9 +5,11 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 
 const PRIMARY_COLOR = "#cc5c99";
+// background color
 const SECONDARY_COLOR = "#0c0c1f";
-const url = `${process.env.REACT_APP_BACKEND_SERVER_URI}/user/signup`;
+const url = "http://localhost:8081/user/signup";
 const Register = () => {
+  document.body.style.backgroundColor = "#0c0c1f";
   const [data, setData] = useState({ username: "", email: "", password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -33,6 +35,8 @@ const Register = () => {
     color: PRIMARY_COLOR,
     fontWeight: "bold",
     textDecoration: "none",
+    fontSize: "x-large",
+    
   };
   let backgroundStyling = { background: bgColor };
   let buttonStyling = {
@@ -44,9 +48,9 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { response: res } = await axios.post(url, data);
-      const {accessToken} = res;
-
+      const { data: res } = await axios.post(url, data);
+      const {accessToken} = res
+      //store token in localStorage
       navigate("/login");
     } catch (error) {
       if (

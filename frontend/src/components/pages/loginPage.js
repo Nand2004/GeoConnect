@@ -7,7 +7,7 @@ import getUserInfo from "../../utilities/decodeJwt";
 
 const PRIMARY_COLOR = "#cc5c99";
 const SECONDARY_COLOR = '#0c0c1f'
-const url = `${process.env.REACT_APP_BACKEND_SERVER_URI}/user/login`;
+const url = "http://localhost:8081/user/login";
 
 const Login = () => {
   const [user, setUser] = useState(null)
@@ -17,6 +17,7 @@ const Login = () => {
   const [bgColor, setBgColor] = useState(SECONDARY_COLOR);
   const [bgText, setBgText] = useState('Light Mode')
   const navigate = useNavigate();
+  
 
   let labelStyling = {
     color: PRIMARY_COLOR,
@@ -29,8 +30,10 @@ const Login = () => {
     borderStyle: "none",
     color: bgColor,
   };
+  
 
   const handleChange = ({ currentTarget: input }) => {
+
     setData({ ...data, [input.name]: input.value });
   };
 
@@ -68,7 +71,7 @@ const Login = () => {
   };
 
   if(user) {
-    navigate('/home')
+      navigate('/userProfileImage')
     return
   }
 

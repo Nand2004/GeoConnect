@@ -8,15 +8,10 @@ import { UserContext } from '../../App';
 //  test change
 
 const Test = () => {
-    // const [user, setUser] = useState(null)
+    
     const value = useContext(UserContext)
 
-    // useEffect(() => {
-      
-    // const obj = getUserInfo()
-    // setUser(obj)
-     
-    // }, [])
+    
     console.log(value)
   return (
     <Stack direction="verticle" gap={2}>

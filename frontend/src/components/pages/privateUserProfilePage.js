@@ -14,6 +14,8 @@ const PrivateUserProfile = () => {
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const navigate = useNavigate();
+  document.body.style.backgroundColor = "#0c0c1f";
+  
 
 
   // handle logout button
@@ -25,21 +27,59 @@ const PrivateUserProfile = () => {
   useEffect(() => {
     setUser(getUserInfo())
   }, []);
+  
 
 
-  // 	<span><b>{<FollowerCount username = {username}/>}</b></span>&nbsp;
-  // <span><b>{<FollowingCount username = {username}/>}</b></span>;
+
+  
   if (!user) return (<div><h4>Log in to view this page.</h4></div>)
+  const { id, email, username, password, favroute} = user
   return (
-    <div class="container">
-      <div class="col-md-12 text-center">
-        <h1>{user && user.username}</h1>
-        <div class="col-md-12 text-center">
+    <div class="container"  style ={{background: '#0c0c1f', color: 'white'}}>
+      <div id="wrapper">
+      
+        <h1 class="col-md-12 text-center">{user && user.username}</h1>
+        
+      </div>
+        
+          
           <>
+          <div>
+          <div class="col-md-12 text-center">     
+           
+                <h3>
+                    Welcome
+                </h3>
+                    <span className='username'> @{username}</span>
+                
+                <h3>
+                    Your userId in mongo db is:
+                </h3>
+                    <span className='userId'> {id}</span>
+                
+                <h3>
+                    Your registered email is: 
+                </h3>
+                    <span className='email'> {email}</span>
+                
+                <h3>
+                    Your password is:
+                </h3>
+
+                    <span className='password'> {password} ( hashed )</span>
+                
+                <h3>
+                    Your favorite route is currently set as:
+                </h3>
+                    <span className='favroute'> {favroute}</span>
+                    
+            </div>    
+        </div>
             <Button className="me-2" onClick={handleShow}>
               Log Out
             </Button>
             <Modal
+              
               show={show}
               onHide={handleClose}
               backdrop="static"
@@ -58,10 +98,12 @@ const PrivateUserProfile = () => {
                 </Button>
               </Modal.Footer>
             </Modal>
+            
           </>
         </div>
-      </div>
-    </div>
+      
+
+    
   );
 };
 
