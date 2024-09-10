@@ -8,11 +8,9 @@ import LandingPage from "./components/pages/landingPage";
 import Login from "./components/pages/loginPage";
 import Signup from "./components/pages/registerPage";
 import PrivateUserProfile from "./components/pages/privateUserProfilePage";
-import Rating from "./components/pages/rating.js";
 import UserProfileImage from "./components/pages/userProfileImage";
 import { createContext, useState, useEffect } from "react";
 import getUserInfo from "./utilities/decodeJwt";
-import History from './components/pages/ratingsHistory';
 import GeoLocation from './components/location/geoLocation'
 
 export const UserContext = createContext();
@@ -36,9 +34,7 @@ const App = () => {
           <Route exact path="/login" element={<Login />} />
           <Route exact path="/signup" element={<Signup />} />
           <Route path="/privateUserProfile" element={<PrivateUserProfile />} />
-          <Route path="/rating" element={<Rating />} />
           <Route path="/userProfileImage" element={<UserProfileImage />} />
-          <Route path="/historyRatings" element={< History/>} />
           <Route path="/geoLocation" element={< GeoLocation />} />
         </Routes>
       </UserContext.Provider>
