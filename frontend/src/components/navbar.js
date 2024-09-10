@@ -28,11 +28,7 @@ export default function Navbar() {
         {/* <Nav.Link href="/home">Home</Nav.Link> */}
         <Nav.Link href="/privateUserProfile">Profile</Nav.Link>
         <Nav.Link href="/userProfileImage">Edit</Nav.Link>
-        <Nav.Link href="/stops">Stops</Nav.Link>
-        <Nav.Link href="/rating">Rating</Nav.Link>
-        <Nav.Link href="/historyRatings">History</Nav.Link>
-        <Nav.Link href="/developers">Developers</Nav.Link>
-        
+        <Nav.Link href="/geoLocation">Location</Nav.Link>     
       </Nav>
     </Container>
   </ReactNavbar>
