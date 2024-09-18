@@ -1,11 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const developers = require('../models/developersModel')
+const newUserModel = require('../../models/userModel')
 
 router.get('/getAll', async (req, res) => {
-
-    const devs = await developers.find();
-    return res.json(devs)
-    
+    const user = await newUserModel.find();
+    return res.json(user)
   })
+
   module.exports = router;
