@@ -5,6 +5,8 @@ const GeolocationComponent = () => {
   const [location, setLocation] = useState({ latitude: null, longitude: null });
   const [error, setError] = useState(null);
 
+  const userId = localStorage.getItem('userId'); // Assume you store the user's ID in local storage when they log in
+
   // Get user's location on component mount
   useEffect(() => {
     if (navigator.geolocation) {
@@ -28,10 +30,15 @@ const GeolocationComponent = () => {
 
   // Send location to server
   const sendLocationToServer = async (latitude, longitude) => {
+    if (!userId) {
+      console.error('User ID not available');
+      return;
+    }
+
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_SERVER_URI}/api/location/update`,
-        { latitude, longitude },
+        `${process.env.REACT_APP_BACKEND_SERVER_URI}/location/locationUpdate`, // updated URL to match new convention
+        { userId, latitude, longitude }, // send userId along with the coordinates
         {
           headers: {
             'Content-Type': 'application/json',
