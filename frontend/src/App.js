@@ -12,6 +12,7 @@ import UserProfileImage from "./components/pages/userProfileImage";
 import { createContext, useState, useEffect } from "react";
 import getUserInfo from "./utilities/decodeJwt";
 import GeoLocation from './components/location/geoLocation'
+import FindUsersNearby from "./components/location/findUsersNearby";
 
 export const UserContext = createContext();
 
@@ -36,6 +37,8 @@ const App = () => {
           <Route path="/privateUserProfile" element={<PrivateUserProfile />} />
           <Route path="/userProfileImage" element={<UserProfileImage />} />
           <Route path="/geoLocation" element={< GeoLocation />} />
+          <Route path="/findUsersNearby" element={< FindUsersNearby />} />
+
         </Routes>
       </UserContext.Provider>
     </>
