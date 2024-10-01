@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@react-google-maps/api": "^2.19.3",
     "aws-sdk": "^2.1360.0",
     "react-icons": "^4.8.0"
   }
