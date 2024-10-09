@@ -1,45 +1,64 @@
+const http = require("http");
 const express = require("express");
+const path = require("path");
+const { Server } = require("socket.io");
+const cors = require("cors");
+
 const app = express();
-const cors = require('cors')
-const loginRoute = require('./routes/user/userLogin')
-const registerRoute = require('./routes/user/userSignUp')
-const dbConnection = require('./config/db.config')
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: ['http://localhost:3000', 'http://localhost:8096'] // Allow both origins
+  }
+});
 
-const getUserByIdRoute = require('./routes/user/userGetUserById')
-const editUser = require('./routes/user/userEditUser')
-const deleteUser = require('./routes/user/userDeleteAll')
-const getAllUsersRoute = require('./routes/user/userGetAllUsers')
+const SERVER_PORT = 8081;
 
-const locationUpdateRoute = require('./routes/location/locationUpdate')
-const locationGetNearbyRoute = require('./routes/location/locationGetNearby'); 
-const locationGetByUserIdRoute = require('./routes/location/locationGetByUserId'); 
-const locationDeleteRoute = require('./routes/location/locationDelete'); 
-const locationGetAllRoute = require('./routes/location/locationGetAll'); //Might delete this route as not the most useful thing
+// Database connection and routes (as in your existing code)
+require("dotenv").config();
+const dbConnection = require("./config/db.config");
+dbConnection();
 
+// Middleware
+app.use(cors({ origin: "http://localhost:3000" }));
+app.use(express.json());
 
-require('dotenv').config();
-const SERVER_PORT = 8081
+// Users routes (as in your existing code)
+app.use('/user', require('./routes/user/userLogin'));
+app.use('/user', require('./routes/user/userSignUp'));
+app.use('/user', require('./routes/user/userGetAllUsers'));
+app.use('/user', require('./routes/user/userGetUserById'));
+app.use('/user', require('./routes/user/userEditUser'));
+app.use('/user', require('./routes/user/userDeleteAll'));
 
-dbConnection()
-app.use(cors({origin: '*'}))
-app.use(express.json())
+// Location routes (as in your existing code)
+app.use('/user', require('./routes/location/locationUpdate'));
+app.use('/user', require('./routes/location/locationGetNearby'));
+app.use('/user', require('./routes/location/locationGetByUserId'));
+app.use('/user', require('./routes/location/locationDelete'));
+app.use('/user', require('./routes/location/locationGetAll'));
 
-//Users routes
-app.use('/user', loginRoute)
-app.use('/user', registerRoute)
-app.use('/user', getAllUsersRoute)
-app.use('/user', getUserByIdRoute)
-app.use('/user', editUser)
-app.use('/user', deleteUser)
+// Serve static files from React app's build folder
+app.use(express.static(path.join(__dirname, 'build')));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
 
-// Location routes
-app.use('/user', locationUpdateRoute);
-app.use('/user', locationGetNearbyRoute);
-app.use('/user', locationGetByUserIdRoute);
-app.use('/user', locationDeleteRoute);
-app.use('/user',locationGetAllRoute);
+// Socket.io connection
+io.on("connection", (socket) => {
+  console.log("A user connected");
 
+  socket.on("user-message", (message) => {
+    console.log("Received message from user:", message);
+    io.emit("message", message);
+  });
 
-app.listen(SERVER_PORT, (req, res) => {
-    console.log(`The backend service is running on port ${SERVER_PORT} and waiting for requests.`);
-})
+  socket.on("disconnect", () => {
+    console.log("A user disconnected");
+  });
+});
+
+// Start server
+server.listen(SERVER_PORT, () => {
+  console.log(`The backend service is running on port ${SERVER_PORT} and waiting for requests.`);
+});

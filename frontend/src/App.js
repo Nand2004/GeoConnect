@@ -13,6 +13,7 @@ import { createContext, useState, useEffect } from "react";
 import getUserInfo from "./utilities/decodeJwt";
 import GeoLocation from './components/location/geoLocation'
 import FindUsersNearby from "./components/location/findUsersNearby";
+import ChatApp from "./components/chatApp";
 
 export const UserContext = createContext();
 
@@ -38,7 +39,7 @@ const App = () => {
           <Route path="/userProfileImage" element={<UserProfileImage />} />
           <Route path="/geoLocation" element={< GeoLocation />} />
           <Route path="/findUsersNearby" element={< FindUsersNearby />} />
-
+          <Route path="/chatApp" element={< ChatApp />} />
         </Routes>
       </UserContext.Provider>
     </>
