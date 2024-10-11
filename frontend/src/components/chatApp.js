@@ -1,66 +1,58 @@
 import React, { useState, useEffect } from "react";
 import io from "socket.io-client";
 
-// Create the socket connection outside the component
+// Connect to the socket server
 const socket = io("http://localhost:8081");
 
 function ChatApp() {
-    const [message, setMessage] = useState("");
-    const [messages, setMessages] = useState([]);
+  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState([]);
 
-    useEffect(() => {
-        console.log("Connecting to socket server...");
-        
-        socket.on("connect", () => {
-            console.log("Connected to the socket server"); // Confirm connection
-        });
+  useEffect(() => {
+    // Listen for incoming messages from the server
+    socket.on("message", (newMessage) => {
+      console.log("New message received:", newMessage);
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+    });
 
-        const messageHandler = (newMessage) => {
-            console.log("Received message:", newMessage); // Log received message
-            setMessages((prevMessages) => {
-                console.log("Previous Messages:", prevMessages); // Log previous messages
-                return [...prevMessages, newMessage];
-            });
-        };
-
-        socket.on("message", messageHandler);
-
-        return () => {
-            socket.off("message", messageHandler); // Cleanup
-        };
-    }, []);
-
-    const sendMessage = () => {
-        if (message.trim()) {
-            console.log("Sending message:", message); // Log message being sent
-            socket.emit("user-message", message);
-            setMessage(""); // Clear input after sending
-        }
+    // Clean up the event listener when the component unmounts
+    return () => {
+      socket.off("message");
     };
+  }, []);
 
-    console.log("Messages array:", messages); // Log messages before rendering
+  const sendMessage = () => {
+    if (message.trim()) {
+      console.log("Sending message:", message);
+      socket.emit("user-message", message);
+      setMessage("");
+    }
+  };
 
-    return (
-        <div style={{ padding: "20px" }}>
-            <h1>Chatting</h1>
-            <input
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Enter Message"
-            />
-            <button onClick={sendMessage}>Send</button>
-            <div>
-                {messages.length > 0 ? (
-                    messages.map((msg, index) => (
-                        <p key={index}>{msg}</p>
-                    ))
-                ) : (
-                    <p>No messages yet.</p> // Add a message when there are no messages
-                )}
-            </div>
-        </div>
-    );
+  return (
+    <div style={{ padding: "20px" }}>
+      <h1>Chatting</h1>
+      <input
+        type="text"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder="Enter Message"
+        style={{ marginBottom: "10px", padding: "8px", width: "300px" }}
+      />
+      <button onClick={sendMessage} style={{ marginLeft: "10px" }}>Send</button>
+      <div style={{ marginTop: "20px", border: "1px solid #ccc", padding: "10px", maxHeight: "300px", overflowY: "auto" }}>
+        {messages.length > 0 ? (
+          messages.map((msg, index) => (
+            <p key={index} style={{ margin: "5px 0", padding: "5px", backgroundColor: "#f9f9f9", borderRadius: "5px" }}>
+              {msg}
+            </p>
+          ))
+        ) : (
+          <p>No messages yet. Start chatting!</p>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default ChatApp;

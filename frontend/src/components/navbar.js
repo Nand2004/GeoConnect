@@ -30,6 +30,7 @@ export default function Navbar() {
         <Nav.Link href="/userProfileImage">Edit</Nav.Link>
         <Nav.Link href="/geoLocation">Location</Nav.Link>     
         <Nav.Link href="/findUsersNearby">Users Nearby</Nav.Link>
+        <Nav.Link href="/chatApp">Chat</Nav.Link>        
       </Nav>
     </Container>
   </ReactNavbar>

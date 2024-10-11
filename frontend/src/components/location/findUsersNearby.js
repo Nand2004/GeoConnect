@@ -35,7 +35,7 @@ const FindUsersNearby = () => {
   const findUsersNearby = async (latitude, longitude) => {
     try {
       const { data } = await axios.get('http://localhost:8081/user/locationGetNearby', {
-        params: { latitude, longitude, distance: 5000 },
+        params: { latitude, longitude, distance: 500 },
       });
       setNearbyUsers(data);
       if (data.length === 0) setMessage('No users found nearby.');

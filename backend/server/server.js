@@ -8,7 +8,9 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:3000', 'http://localhost:8096'] // Allow both origins
+    origin: ['http://localhost:3000', 'http://localhost:8096'], // Allow both frontend origins
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
@@ -20,7 +22,11 @@ const dbConnection = require("./config/db.config");
 dbConnection();
 
 // Middleware
-app.use(cors({ origin: "http://localhost:3000" }));
+app.use(cors({ 
+  origin: ['http://localhost:3000', 'http://localhost:8096'],
+  methods: ["GET", "POST"],
+  credentials: true
+}));
 app.use(express.json());
 
 // Users routes (as in your existing code)
@@ -46,15 +52,12 @@ app.get('*', (req, res) => {
 
 // Socket.io connection
 io.on("connection", (socket) => {
-  console.log("A user connected");
 
   socket.on("user-message", (message) => {
-    console.log("Received message from user:", message);
-    io.emit("message", message);
+    io.emit("message", message); // Broadcast the message to all connected clients
   });
 
   socket.on("disconnect", () => {
-    console.log("A user disconnected");
   });
 });
 
