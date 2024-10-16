@@ -29,7 +29,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Users routes (as in your existing code)
+// Users routes 
 app.use('/user', require('./routes/user/userLogin'));
 app.use('/user', require('./routes/user/userSignUp'));
 app.use('/user', require('./routes/user/userGetAllUsers'));
@@ -37,12 +37,26 @@ app.use('/user', require('./routes/user/userGetUserById'));
 app.use('/user', require('./routes/user/userEditUser'));
 app.use('/user', require('./routes/user/userDeleteAll'));
 
-// Location routes (as in your existing code)
+// Location routes 
 app.use('/user', require('./routes/location/locationUpdate'));
 app.use('/user', require('./routes/location/locationGetNearby'));
 app.use('/user', require('./routes/location/locationGetByUserId'));
 app.use('/user', require('./routes/location/locationDelete'));
 app.use('/user', require('./routes/location/locationGetAll'));
+
+// Chat routes
+app.use('/chat', require('./routes/chat/chatAddGroupUser'));
+app.use('/chat', require('./routes/chat/chatArchive'));
+app.use('/chat', require('./routes/chat/chatCreateChat'));
+app.use('/chat', require('./routes/chat/chatGetArchivedChat'));
+app.use('/chat', require('./routes/chat/chatGetByChatId'));
+app.use('/chat', require('./routes/chat/chatGetMessage'));
+app.use('/chat', require('./routes/chat/chatGroupRoleUpdate'));
+app.use('/chat', require('./routes/chat/chatMessageMarkRead'));
+app.use('/chat', require('./routes/chat/chatRemoveGroupUser'));
+app.use('/chat', require('./routes/chat/chatSearch'));
+app.use('/chat', require('./routes/chat/chatUnread'));
+app.use('/chat', require('./routes/chat/chatSendMessage'));
 
 // Serve static files from React app's build folder
 app.use(express.static(path.join(__dirname, 'build')));
