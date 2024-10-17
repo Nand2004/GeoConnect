@@ -15,6 +15,8 @@ import GeoLocation from './components/location/geoLocation'
 import FindUsersNearby from "./components/location/findUsersNearby";
 import ChatApp from "./components/chatApp";
 
+import Chat from "./components/chat/chat";
+
 export const UserContext = createContext();
 
 //test change
@@ -40,6 +42,8 @@ const App = () => {
           <Route path="/geoLocation" element={< GeoLocation />} />
           <Route path="/findUsersNearby" element={< FindUsersNearby />} />
           <Route path="/chatApp" element={< ChatApp />} />
+          <Route path="/chat" element={< Chat />} />
+
         </Routes>
       </UserContext.Provider>
     </>
