@@ -36,6 +36,7 @@ app.use('/user', require('./routes/user/userGetAllUsers'));
 app.use('/user', require('./routes/user/userGetUserById'));
 app.use('/user', require('./routes/user/userEditUser'));
 app.use('/user', require('./routes/user/userDeleteAll'));
+app.use('/user', require('./routes/user/userSearchUser'));
 
 // Location routes 
 app.use('/user', require('./routes/location/locationUpdate'));
