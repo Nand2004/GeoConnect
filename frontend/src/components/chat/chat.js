@@ -172,7 +172,7 @@ function Chat() {
   
       {selectedUser && (
         <div className="d-flex flex-column" style={styles.chatWindow}>
-          <h2>Chat with {selectedUser.username}</h2> {/* Show username in chat header */}
+          <h2 style={styles.chatHeader}>Chat with {selectedUser.username}</h2> {/* Show username in chat header */}
           <div className="flex-grow-1 d-flex flex-column" style={styles.chatMessages}>
             {/* Render the messages here */}
             {messages.length > 0 ? (
@@ -180,7 +180,9 @@ function Chat() {
                 <div key={index} className={msg.userId === currentUser.id ? 'my-message' : 'other-message'} 
                 style={{
                   ...styles.messageBubble,
-                  ...(msg.sender === currentUser.id ? styles.myMessage : styles.otherMessage),
+                  ...(msg.userId === currentUser.id ? styles.myMessage : styles.otherMessage),
+                  marginLeft: msg.userId === currentUser.id ? 'auto' : '0', // Align sent messages to the right
+
                 }}>
                   <span style={styles.messageText}>{msg.message}</span>
                   <span style={styles.messageTime}>{new Date(msg.timestamp).toLocaleTimeString()}</span>
@@ -207,7 +209,6 @@ function Chat() {
             />
             <button type="submit" className="btn btn-primary" style={styles.sendButton}>Send</button>
           </form>
-
         </div>
       )}
     </div>
@@ -220,11 +221,12 @@ const styles = {
     height: '100vh',
     background: 'linear-gradient(135deg, #0F2027, #203A43, #2C5364)',
     color: 'white',
+    fontFamily: 'Arial, sans-serif',
   },
   sidebar: {
     width: '25%',
     backgroundColor: '#2C3E50',
-    padding: '15px',
+    padding: '20px',
     borderRight: '1px solid #ccc',
   },
   searchBar: {
@@ -234,6 +236,8 @@ const styles = {
     backgroundColor: '#34495E',
     color: 'white',
     border: 'none',
+    transition: 'background-color 0.3s',
+    outline: 'none',
   },
   userList: {
     margin: 0,
@@ -246,6 +250,10 @@ const styles = {
     borderBottom: '1px solid #555',
     cursor: 'pointer',
     color: '#ecf0f1',
+    transition: 'background-color 0.3s',
+  },
+  userItemHover: {
+    backgroundColor: '#34495E',
   },
   chatWindow: {
     width: '75%',
@@ -254,18 +262,23 @@ const styles = {
     backgroundColor: '#212F3D',
     padding: '25px',
   },
+  chatHeader: {
+    marginBottom: '15px',
+    fontSize: '1.5em',
+    color: '#ecf0f1',
+  },
   chatMessages: {
     flexGrow: 1,
-    padding: '25px',
+    padding: '10px',
     overflowY: 'auto',
     maxHeight: '900px', // Remove max height constraint
   },
   messageBubble: {
     borderRadius: '10px',
     padding: '8px',
-    margin: '5px 0',
+    margin: '10px 0', // Change margin here to increase space between messages
     maxWidth: '60%',
-  },
+  },  
   myMessage: {
     textAlign: 'right',
     backgroundColor: '#d1ffd1', // Light green for sent messages
@@ -289,6 +302,8 @@ const styles = {
   inputField: {
     flexGrow: 1,
     marginRight: '10px',
+    borderRadius: '20px',
+    padding: '10px',
   },
   sendButton: {
     padding: '10px 20px',
@@ -297,8 +312,8 @@ const styles = {
     borderRadius: '25px',
     border: 'none',
     cursor: 'pointer',
+    transition: 'background-color 0.3s',
   }
 };
-
 
 export default Chat;
