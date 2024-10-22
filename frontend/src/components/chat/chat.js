@@ -1,38 +1,138 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Modal, Button, Spinner } from 'react-bootstrap';  // Bootstrap components for Modal and Spinner
+import { Button, Alert } from 'react-bootstrap';
+import axios from 'axios';
+import { io } from 'socket.io-client';
+import getUserInfo from '../../utilities/decodeJwt';
 
-function ChatPage() {
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [messages, setMessages] = useState([
-    { sender: 'Sam Edwards', text: 'Hi Zoe!', time: '20:50' },
-    { sender: 'You', text: 'How’s it going?', time: '20:51' },
-  ]);
-  const [typing, setTyping] = useState(false);  // To show typing indicator
+function Chat() {
+  const [currentUser, setCurrentUser] = useState(null);
   const [search, setSearch] = useState('');
-  const [showProfileModal, setShowProfileModal] = useState(false);  // For profile modal
+  const [searchResults, setSearchResults] = useState([]);
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [socket, setSocket] = useState(null);
 
-  const users = [
-    { name: 'Sam Edwards', avatar: '/path/to/avatar1.png', status: 'online' },
-    { name: 'Rebecca Barker', avatar: '/path/to/avatar2.png', status: 'away' },
-    { name: 'Alyssa Davis', avatar: '/path/to/avatar3.png', status: 'offline' },
-    { name: 'Jack John', avatar: '/path/to/avatar4.png', status: 'online' },
-    { name: 'Felix Forbes', avatar: '/path/to/avatar5.png', status: 'away' },
-  ];
+  // Fetch user info on component mount
+  useEffect(() => {
+    const userInfo = getUserInfo();
+    if (userInfo) {
+      setCurrentUser(userInfo);
+    }
+  }, []);
 
-  const handleSendMessage = (messageText) => {
-    setMessages([...messages, { sender: 'You', text: messageText, time: new Date().toLocaleTimeString() }]);
-    setTyping(false);  // Stop typing indicator when message is sent
+  // Initialize Socket.IO connection
+  useEffect(() => {
+    const newSocket = io('http://localhost:8081'); // Replace with your server address if necessary
+    setSocket(newSocket);
+    return () => newSocket.close();
+  }, []);
+
+  // Search for users based on input
+  const handleSearch = async () => {
+    if (!search) return;
+    try {
+      const { data } = await axios.get(`http://localhost:8081/user/userSearchUser?username=${search}`);
+      setSearchResults(data);
+      setError('');
+    } catch {
+      setError('Error searching for users.');
+    }
   };
 
-  useEffect(() => {
-    // Simulate typing after 2 seconds
-    if (selectedUser) {
-      setTyping(true);
-      const timer = setTimeout(() => setTyping(false), 3000);
-      return () => clearTimeout(timer);
+  // Create chat between current user and selected user
+  const handleCreateChat = async (selectedUser) => {
+    if (!currentUser) return;
+
+    try {
+      // Prepare the body with user IDs for the API call
+      const body = {
+        chatType: 'direct', // Assuming the chat type is always direct for two users
+        users: [currentUser.id, selectedUser._id],
+      };
+
+      // Make the POST request to create the chat
+      const response = await axios.post('http://localhost:8081/chat/chatCreateChat', body);
+
+      // Check if the response is successful and contains the chat ID
+      if (response.data && response.data._id) {
+        const chatId = response.data._id; // Save the chat ID
+
+        setSuccessMessage(`Chat created with ${selectedUser.username}`);
+        setSearchResults([]);
+        setSelectedUser(selectedUser); // Store the selected user object
+
+        // Load messages for the newly created chat using the chatId
+        await loadMessages(chatId);
+      } else {
+        setError('Chat creation failed. Please try again.');
+      }
+    } catch (error) {
+      console.error(error);
+      setError('Error creating chat.');
     }
-  }, [selectedUser]);
+  };
+
+
+  const loadMessages = async (chatId) => {
+    try {
+      const response = await axios.get(`http://localhost:8081/chat/chatGetByChatId/${chatId}`);
+      
+      // Check if the response contains messages
+      if (response.data && response.data.messages) {
+        // Set messages from the response
+        const loadedMessages = response.data.messages.map((msg) => ({
+          userId: msg.sender,  // Use the sender ID
+          message: msg.message,
+          timestamp: msg.timestamp
+        }));
+        setMessages(loadedMessages); // Update your messages state
+      } else {
+        setError('No messages found.');
+      }
+    } catch (error) {
+      console.error('Error loading messages:', error);
+      setError('Error loading messages.');
+    }
+  };
+  
+
+
+  // Handle sending messages in the chat
+  const handleSendMessage = async (text) => {
+    if (!selectedUser || !text) return;
+
+    const chatId = selectedUser.chatId; // Ensure you store the chatId when selecting user
+    const messageData = {
+      sender: currentUser.id,
+      message: text,
+      attachments: [],
+    };
+
+    try {
+      // Send message to the backend
+      await axios.post(`http://localhost:8081/chat/chatSendMessage/${chatId}`, messageData);
+
+      // Emit the message to the Socket.IO server
+      socket.emit('sendMessage', { chatId, message: messageData });
+
+      // Optimistically update the message list
+      setMessages((prev) => [...prev, { sender: 'You', text, time: new Date().toLocaleTimeString() }]);
+    } catch (error) {
+      setError('Error sending message.');
+    }
+  };
+
+  // Listen for incoming messages in real-time
+  useEffect(() => {
+    if (socket) {
+      socket.on('receiveMessage', (message) => {
+        setMessages((prev) => [...prev, { sender: message.sender, text: message.message, time: new Date().toLocaleTimeString() }]);
+      });
+    }
+  }, [socket]);
 
   return (
     <div style={styles.app}>
@@ -45,104 +145,62 @@ function ChatPage() {
           onChange={(e) => setSearch(e.target.value)}
           style={styles.searchBar}
         />
+        <Button variant="primary" onClick={handleSearch}>Search</Button>
+        {error && <Alert variant="danger">{error}</Alert>}
+        {successMessage && <Alert variant="success">{successMessage}</Alert>}
         <ul className="list-unstyled" style={styles.userList}>
-          {users
-            .filter(user => user.name.toLowerCase().includes(search.toLowerCase()))
-            .map(user => (
-              <li
-                key={user.name}
-                onClick={() => setSelectedUser(user)}
-                style={styles.userItem}
-                className="d-flex align-items-center justify-content-between"
-              >
-                <div className="d-flex align-items-center">
-                  <img src={user.avatar} alt={user.name} style={styles.avatar} />
-                  <span>{user.name}</span>
-                </div>
-                <span style={{ ...styles.statusBadge, ...styles[user.status] }}>{user.status}</span>
-              </li>
-            ))}
+          {searchResults.map(user => (
+            <li
+              key={user._id}
+              onClick={() => handleCreateChat(user)} // Pass user object to create chat
+              style={styles.userItem}
+              className="d-flex align-items-center justify-content-between"
+            >
+              <span>{user.username}</span> {/* Display username */}
+              <Button variant="primary">Start Chat</Button>
+            </li>
+          ))}
         </ul>
       </div>
-
-      {selectedUser ? (
+  
+      {selectedUser && (
         <div className="d-flex flex-column" style={styles.chatWindow}>
-          <div className="d-flex align-items-center" style={styles.chatHeader}>
-            <img
-              src={selectedUser.avatar}
-              alt={selectedUser.name}
-              style={styles.avatar}
-              onClick={() => setShowProfileModal(true)}  // Open modal on click
-            />
-            <h2>{selectedUser.name}</h2>
-          </div>
+          <h2>Chat with {selectedUser.username}</h2> {/* Show username in chat header */}
           <div className="flex-grow-1 d-flex flex-column" style={styles.chatMessages}>
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`message-bubble ${message.sender === 'You' ? 'sent' : 'received'}`}
+            {/* Render the messages here */}
+            {messages.length > 0 ? (
+              messages.map((msg, index) => (
+                <div key={index} className={msg.userId === currentUser.id ? 'my-message' : 'other-message'} 
                 style={{
                   ...styles.messageBubble,
-                  alignSelf: message.sender === 'You' ? 'flex-end' : 'flex-start',
-                  backgroundColor: message.sender === 'You' ? '#00D27A' : '#394866',
-                }}
-              >
-                <p>{message.text}</p>
-                <span style={styles.messageTime}>{message.time}</span>
-              </div>
-            ))}
-            {typing && (
-              <div className="d-flex align-items-center" style={styles.typingIndicator}>
-                <Spinner animation="grow" size="sm" className="mr-2" />
-                <span>{selectedUser.name} is typing...</span>
-              </div>
+                  ...(msg.sender === currentUser.id ? styles.myMessage : styles.otherMessage),
+                }}>
+                  <span style={styles.messageText}>{msg.message}</span>
+                  <span style={styles.messageTime}>{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                </div>
+              ))
+            ) : (
+              <div>No messages yet.</div> // Display a message if there are no messages
             )}
           </div>
-          <form
-            style={styles.messageInput}
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSendMessage(e.target.message.value);
-              e.target.message.value = '';
-            }}
-          >
+          <form style={styles.messageInput} onSubmit={(e) => {
+            e.preventDefault();
+            handleSendMessage(e.target.message.value);
+            e.target.message.value = '';
+          }}>
             <input
               type="text"
               name="message"
               className="form-control"
               style={styles.inputField}
               placeholder="Send a message..."
-              onKeyPress={() => setTyping(true)}
             />
-            <button type="submit" className="btn btn-primary" style={styles.sendButton}>
-              Send
-            </button>
+            <button type="submit" className="btn btn-primary" style={styles.sendButton}>Send</button>
           </form>
         </div>
-      ) : (
-        <div style={styles.welcomeMessage}>Select a user to start chatting!</div>
       )}
-
-      {/* Modal for showing the profile */}
-      <Modal show={showProfileModal} onHide={() => setShowProfileModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>{selectedUser?.name}'s Profile</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="text-center">
-            <img src={selectedUser?.avatar} alt={selectedUser?.name} style={styles.modalAvatar} />
-            <h4>{selectedUser?.name}</h4>
-            <p>Status: <strong>{selectedUser?.status}</strong></p>
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowProfileModal(false)}>
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal>
     </div>
-  );
+  );  
 }
 
 const styles = {
@@ -176,37 +234,7 @@ const styles = {
     padding: '12px 15px',
     borderBottom: '1px solid #555',
     cursor: 'pointer',
-    borderRadius: '10px',
-    transition: 'background-color 0.3s ease',
     color: '#ecf0f1',
-  },
-  userItemHover: {
-    backgroundColor: '#1C2833',
-  },
-  avatar: {
-    width: '45px',
-    height: '45px',
-    borderRadius: '50%',
-    marginRight: '12px',
-    cursor: 'pointer',
-  },
-  statusBadge: {
-    padding: '5px 10px',
-    borderRadius: '15px',
-    fontSize: '12px',
-    fontWeight: 'bold',
-  },
-  online: {
-    backgroundColor: '#00C851',
-    color: '#fff',
-  },
-  away: {
-    backgroundColor: '#ffbb33',
-    color: '#fff',
-  },
-  offline: {
-    backgroundColor: '#ff4444',
-    color: '#fff',
   },
   chatWindow: {
     width: '75%',
@@ -215,30 +243,33 @@ const styles = {
     backgroundColor: '#212F3D',
     padding: '25px',
   },
-  chatHeader: {
-    paddingBottom: '15px',
-    borderBottom: '1px solid #444',
-  },
   chatMessages: {
     flexGrow: 1,
     padding: '25px',
     overflowY: 'auto',
+    maxHeight: '900px', // Remove max height constraint
   },
   messageBubble: {
-    padding: '12px 18px',
-    borderRadius: '20px',
-    margin: '12px 0',
+    borderRadius: '10px',
+    padding: '8px',
+    margin: '5px 0',
     maxWidth: '60%',
   },
-  messageTime: {
-    display: 'block',
+  myMessage: {
     textAlign: 'right',
-    fontSize: '0.8em',
-    marginTop: '5px',
-    color: '#ccc',
+    backgroundColor: '#d1ffd1', // Light green for sent messages
   },
-  typingIndicator: {
-    color: '#aaa',
+  otherMessage: {
+    textAlign: 'left',
+    backgroundColor: '#f0f0f0', // Light gray for received messages
+  },
+  messageText: {
+    color: '#000', // Black text for readability
+  },
+  messageTime: {
+    fontSize: '0.8em',
+    color: 'gray',
+    marginLeft: '5px',
   },
   messageInput: {
     display: 'flex',
@@ -255,17 +286,8 @@ const styles = {
     borderRadius: '25px',
     border: 'none',
     cursor: 'pointer',
-  },
-  welcomeMessage: {
-    padding: '20px',
-    color: 'white',
-  },
-  modalAvatar: {
-    width: '100px',
-    height: '100px',
-    borderRadius: '50%',
-    marginBottom: '20px',
-  },
+  }
 };
 
-export default ChatPage;
+
+export default Chat;
