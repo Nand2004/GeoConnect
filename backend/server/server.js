@@ -59,6 +59,7 @@ app.use('/chat', require('./routes/chat/chatSearch'));
 app.use('/chat', require('./routes/chat/chatUnread'));
 app.use('/chat', require('./routes/chat/chatSendMessage'));
 app.use('/chat', require('./routes/chat/chatDeleteAll'));
+app.use('/chat', require('./routes/chat/chatGetByUserId'));
 
 
 // Serve static files from React app's build folder
