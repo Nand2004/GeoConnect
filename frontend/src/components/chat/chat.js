@@ -14,6 +14,7 @@ function Chat() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [socket, setSocket] = useState(null);
+  const [chatId, setChatId] = useState(null); 
 
   // Fetch user info on component mount
   useEffect(() => {
@@ -60,6 +61,7 @@ function Chat() {
       if (response.data && response.data._id) {
         const chatId = response.data._id; // Save the chat ID
 
+        setChatId(chatId);
         setSuccessMessage(`Chat created with ${selectedUser.username}`);
         setSearchResults([]);
         setSelectedUser(selectedUser); // Store the selected user object
@@ -100,30 +102,35 @@ function Chat() {
   
 
 
-  // Handle sending messages in the chat
-  const handleSendMessage = async (text) => {
-    if (!selectedUser || !text) return;
-
-    const chatId = selectedUser.chatId; // Ensure you store the chatId when selecting user
-    const messageData = {
-      sender: currentUser.id,
-      message: text,
-      attachments: [],
-    };
-
+  const handleSendMessage = async (message) => {
+    if (!message.trim() || !chatId) return; // Don't send empty messages or if chatId is not set
+  
     try {
-      // Send message to the backend
-      await axios.post(`http://localhost:8081/chat/chatSendMessage/${chatId}`, messageData);
-
-      // Emit the message to the Socket.IO server
-      socket.emit('sendMessage', { chatId, message: messageData });
-
-      // Optimistically update the message list
-      setMessages((prev) => [...prev, { sender: 'You', text, time: new Date().toLocaleTimeString() }]);
+      const response = await axios.post(`http://localhost:8081/chat/chatSendMessage/${chatId}`, {
+        sender: currentUser.id, // Use the ID of the current user
+        message: message,
+        // Attachments can be included here if needed
+      });
+  
+      if (response.data) {
+        // Optionally, update messages or perform any additional action after sending
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            userId: currentUser.id, // Adding the sent message to the local state
+            message: message,
+            timestamp: new Date().toISOString(), // Use current time for the new message
+          },
+        ]);
+      } else {
+        setError('Failed to send message. Please try again.');
+      }
     } catch (error) {
+      console.error('Error sending message:', error);
       setError('Error sending message.');
     }
   };
+  
 
   // Listen for incoming messages in real-time
   useEffect(() => {
@@ -183,11 +190,14 @@ function Chat() {
               <div>No messages yet.</div> // Display a message if there are no messages
             )}
           </div>
-          <form style={styles.messageInput} onSubmit={(e) => {
-            e.preventDefault();
-            handleSendMessage(e.target.message.value);
-            e.target.message.value = '';
-          }}>
+          <form
+            style={styles.messageInput}
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSendMessage(e.target.message.value); // Call the function on form submit
+              e.target.message.value = ''; // Clear the input after sending
+            }}
+          >
             <input
               type="text"
               name="message"
@@ -197,6 +207,7 @@ function Chat() {
             />
             <button type="submit" className="btn btn-primary" style={styles.sendButton}>Send</button>
           </form>
+
         </div>
       )}
     </div>
