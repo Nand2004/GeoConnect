@@ -14,6 +14,7 @@ function Chat() {
   const [successMessage, setSuccessMessage] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [chatHistory, setChatHistory] = useState([]); // New state for chat history
   const [socket, setSocket] = useState(null);
   const [chatId, setChatId] = useState(null); 
 
@@ -27,6 +28,22 @@ function Chat() {
     setSocket(newSocket);
     return () => newSocket.close();
   }, []);
+
+  // Fetch chat history on component mount
+  useEffect(() => {
+    const fetchChatHistory = async () => {
+      if (currentUser) {
+        try {
+          const { data } = await axios.get(`http://localhost:8081/chat/chatGetByUserId/${currentUser.id}`);
+          setChatHistory(data); // Assuming data is an array of chat objects
+        } catch (error) {
+          console.error('Error fetching chat history:', error);
+          setError('Error fetching chat history.');
+        }
+      }
+    };
+    fetchChatHistory();
+  }, [currentUser]);
 
   const handleSearch = async () => {
     if (!search) return;
@@ -122,6 +139,13 @@ function Chat() {
     }
   }, [socket]);
 
+  // Function to handle chat selection from history
+  const handleChatSelect = async (chat) => {
+    setSelectedUser(chat.users.find(user => user.userId !== currentUser.id)); // Select the other user
+    setChatId(chat._id);
+    await loadMessages(chat._id);
+  };
+
   return (
     <div className="app">
       <div className="d-flex flex-column sidebar">
@@ -135,6 +159,24 @@ function Chat() {
         <Button variant="primary" onClick={handleSearch}>Search</Button>
         {error && <Alert variant="danger">{error}</Alert>}
         {successMessage && <Alert variant="success">{successMessage}</Alert>}
+        
+        {/* Display chat history */}
+        <h4>Chat History</h4>
+        <ul className="list-unstyled userList">
+          {[...chatHistory].reverse().map(chat => ( // Reverse the chat history here
+            <li
+              key={chat._id}
+              onClick={() => handleChatSelect(chat)}
+              className="d-flex align-items-center justify-content-between userItem"
+            >
+              <span>{chat.chatName || chat.users.map(user => user.userId).join(', ')}</span>
+              <Button variant="primary">Open</Button>
+            </li>
+          ))}
+        </ul>
+
+
+        {/* Display search results */}
         <ul className="list-unstyled userList">
           {searchResults.map(user => (
             <li
