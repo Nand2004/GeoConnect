@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { Button, Alert } from 'react-bootstrap';
-import axios from 'axios';
-import { io } from 'socket.io-client';
-import getUserInfo from '../../utilities/decodeJwt';
-import './chat.css'; 
+import React, { useState, useEffect } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { Button, Alert } from "react-bootstrap";
+import axios from "axios";
+import { io } from "socket.io-client";
+import getUserInfo from "../../utilities/decodeJwt";
+import "./chat.css";
 
 function Chat() {
   const [currentUser, setCurrentUser] = useState(null);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [chatHistory, setChatHistory] = useState([]); // New state for chat history
   const [socket, setSocket] = useState(null);
-  const [chatId, setChatId] = useState(null); 
+  const [chatId, setChatId] = useState(null);
 
   useEffect(() => {
     const userInfo = getUserInfo();
@@ -24,7 +24,7 @@ function Chat() {
   }, []);
 
   useEffect(() => {
-    const newSocket = io('http://localhost:8081');
+    const newSocket = io("http://localhost:8081");
     setSocket(newSocket);
     return () => newSocket.close();
   }, []);
@@ -34,11 +34,13 @@ function Chat() {
     const fetchChatHistory = async () => {
       if (currentUser) {
         try {
-          const { data } = await axios.get(`http://localhost:8081/chat/chatGetByUserId/${currentUser.id}`);
+          const { data } = await axios.get(
+            `http://localhost:8081/chat/chatGetByUserId/${currentUser.id}`
+          );
           setChatHistory(data); // Assuming data is an array of chat objects
         } catch (error) {
-          console.error('Error fetching chat history:', error);
-          setError('Error fetching chat history.');
+          console.error("Error fetching chat history:", error);
+          setError("Error fetching chat history.");
         }
       }
     };
@@ -48,11 +50,13 @@ function Chat() {
   const handleSearch = async () => {
     if (!search) return;
     try {
-      const { data } = await axios.get(`http://localhost:8081/user/userSearchUser?username=${search}`);
+      const { data } = await axios.get(
+        `http://localhost:8081/user/userSearchUser?username=${search}`
+      );
       setSearchResults(data);
-      setError('');
+      setError("");
     } catch {
-      setError('Error searching for users.');
+      setError("Error searching for users.");
     }
   };
 
@@ -61,11 +65,14 @@ function Chat() {
 
     try {
       const body = {
-        chatType: 'direct',
+        chatType: "direct",
         users: [currentUser.id, selectedUser._id],
       };
 
-      const response = await axios.post('http://localhost:8081/chat/chatCreateChat', body);
+      const response = await axios.post(
+        "http://localhost:8081/chat/chatCreateChat",
+        body
+      );
 
       if (response.data && response.data._id) {
         const chatId = response.data._id;
@@ -75,17 +82,19 @@ function Chat() {
         setSelectedUser(selectedUser);
         await loadMessages(chatId);
       } else {
-        setError('Chat creation failed. Please try again.');
+        setError("Chat creation failed. Please try again.");
       }
     } catch (error) {
       console.error(error);
-      setError('Error creating chat.');
+      setError("Error creating chat.");
     }
   };
 
   const loadMessages = async (chatId) => {
     try {
-      const response = await axios.get(`http://localhost:8081/chat/chatGetByChatId/${chatId}`);
+      const response = await axios.get(
+        `http://localhost:8081/chat/chatGetByChatId/${chatId}`
+      );
       if (response.data && response.data.messages) {
         const loadedMessages = response.data.messages.map((msg) => ({
           userId: msg.sender,
@@ -94,21 +103,24 @@ function Chat() {
         }));
         setMessages(loadedMessages);
       } else {
-        setError('No messages found.');
+        setError("No messages found.");
       }
     } catch (error) {
-      console.error('Error loading messages:', error);
-      setError('Error loading messages.');
+      console.error("Error loading messages:", error);
+      setError("Error loading messages.");
     }
   };
 
   const handleSendMessage = async (message) => {
     if (!message.trim() || !chatId) return;
     try {
-      const response = await axios.post(`http://localhost:8081/chat/chatSendMessage/${chatId}`, {
-        sender: currentUser.id,
-        message: message,
-      });
+      const response = await axios.post(
+        `http://localhost:8081/chat/chatSendMessage/${chatId}`,
+        {
+          sender: currentUser.id,
+          message: message,
+        }
+      );
 
       if (response.data) {
         setMessages((prevMessages) => [
@@ -119,32 +131,55 @@ function Chat() {
             timestamp: new Date().toISOString(),
           },
         ]);
+
+        // Emit the message through the socket
+        socket.emit("sendMessage", {
+          chatId,
+          sender: currentUser.id,
+          message,
+        });
       } else {
-        setError('Failed to send message. Please try again.');
+        setError("Failed to send message. Please try again.");
       }
     } catch (error) {
-      console.error('Error sending message:', error);
-      setError('Error sending message.');
+      console.error("Error sending message:", error);
+      setError("Error sending message.");
     }
   };
 
   useEffect(() => {
     if (socket) {
-      socket.on('receiveMessage', (message) => {
-        setMessages((prev) => [
-          ...prev,
-          { sender: message.sender, text: message.message, time: new Date().toLocaleTimeString() },
-        ]);
+      socket.on("receiveMessage", (message) => {
+        if (message.chatId === chatId) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              userId: message.sender,
+              message: message.message,
+              timestamp: new Date().toISOString(),
+            },
+          ]);
+        }
       });
     }
-  }, [socket]);
+  }, [socket, chatId]);
 
   // Function to handle chat selection from history
   const handleChatSelect = async (chat) => {
-    setSelectedUser(chat.users.find(user => user.userId !== currentUser.id)); // Select the other user
+    setSelectedUser(chat.users.find((user) => user.userId !== currentUser.id)); // Select the other user
     setChatId(chat._id);
-    await loadMessages(chat._id);
+    await loadMessages(chat._id); // Automatically load messages
   };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (chatId) {
+        loadMessages(chatId); // Optionally refresh messages every few seconds
+      }
+    }, 5000);
+
+    return () => clearInterval(interval); // Cleanup on component unmount
+  }, [chatId]);
 
   return (
     <div className="app">
@@ -156,29 +191,33 @@ function Chat() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <Button variant="primary" onClick={handleSearch}>Search</Button>
+        <Button variant="primary" onClick={handleSearch}>
+          Search
+        </Button>
         {error && <Alert variant="danger">{error}</Alert>}
         {successMessage && <Alert variant="success">{successMessage}</Alert>}
-        
+
         {/* Display chat history */}
         <h4>Chat History</h4>
         <ul className="list-unstyled userList">
-          {[...chatHistory].reverse().map(chat => ( // Reverse the chat history here
+          {chatHistory.map((chat) => (
             <li
               key={chat._id}
               onClick={() => handleChatSelect(chat)}
               className="d-flex align-items-center justify-content-between userItem"
             >
-              <span>{chat.chatName || chat.users.map(user => user.userId).join(', ')}</span>
+              <span>
+                {chat.chatName ||
+                  chat.users.map((user) => user.userId).join(", ")}
+              </span>
               <Button variant="primary">Open</Button>
             </li>
           ))}
         </ul>
 
-
         {/* Display search results */}
         <ul className="list-unstyled userList">
-          {searchResults.map(user => (
+          {searchResults.map((user) => (
             <li
               key={user._id}
               onClick={() => handleCreateChat(user)}
@@ -190,7 +229,7 @@ function Chat() {
           ))}
         </ul>
       </div>
-  
+
       {selectedUser && (
         <div className="d-flex flex-column chatWindow">
           <h2 className="chatHeader">Chat with {selectedUser.username}</h2>
@@ -199,10 +238,13 @@ function Chat() {
               messages.map((msg, index) => (
                 <div
                   key={index}
-                  className={`messageBubble ${msg.userId === currentUser.id ? 'myMessage' : 'otherMessage'}`}
+                  className={`messageBubble ${msg.userId === currentUser.id ? "myMessage" : "otherMessage"
+                    }`}
                 >
                   <span className="messageText">{msg.message}</span>
-                  <span className="messageTime">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                  <span className="messageTime">
+                    {new Date(msg.timestamp).toLocaleTimeString()}
+                  </span>
                 </div>
               ))
             ) : (
@@ -214,7 +256,7 @@ function Chat() {
             onSubmit={(e) => {
               e.preventDefault();
               handleSendMessage(e.target.message.value);
-              e.target.message.value = '';
+              e.target.message.value = "";
             }}
           >
             <input
@@ -223,7 +265,9 @@ function Chat() {
               className="form-control inputField"
               placeholder="Send a message..."
             />
-            <button type="submit" className="btn btn-primary sendButton">Send</button>
+            <button type="submit" className="btn btn-primary sendButton">
+              Send
+            </button>
           </form>
         </div>
       )}
