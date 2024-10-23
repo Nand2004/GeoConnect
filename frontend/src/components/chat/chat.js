@@ -29,23 +29,34 @@ function Chat() {
     return () => newSocket.close();
   }, []);
 
-  // Fetch chat history on component mount
   useEffect(() => {
     const fetchChatHistory = async () => {
-      if (currentUser) {
-        try {
-          const { data } = await axios.get(
-            `http://localhost:8081/chat/chatGetByUserId/${currentUser.id}`
-          );
-          setChatHistory(data); // Assuming data is an array of chat objects
-        } catch (error) {
-          console.error("Error fetching chat history:", error);
-          setError("Error fetching chat history.");
+        if (currentUser) {
+            try {
+                const { data } = await axios.get(
+                    `http://localhost:8081/chat/chatGetByUserId/${currentUser.id}`
+                );
+                // Assuming data is an array of chat objects
+                const chatWithUsernames = await Promise.all(
+                    data.map(async (chat) => {
+                        const usernames = await Promise.all(
+                            chat.users.map(async (user) => {
+                                const response = await axios.get(`http://localhost:8081/user/getUsernameByUserId/${user.userId}`);
+                                return response.data.username;
+                            })
+                        );
+                        return { ...chat, usernames }; // Add usernames to the chat object
+                    })
+                );
+                setChatHistory(chatWithUsernames);
+            } catch (error) {
+                console.error("Error fetching chat history:", error);
+                setError("Error fetching chat history.");
+            }
         }
-      }
     };
     fetchChatHistory();
-  }, [currentUser]);
+}, [currentUser]);
 
   const handleSearch = async () => {
     if (!search) return;
@@ -207,8 +218,7 @@ function Chat() {
               className="d-flex align-items-center justify-content-between userItem"
             >
               <span>
-                {chat.chatName ||
-                  chat.users.map((user) => user.userId).join(", ")}
+                {chat.usernames.filter((username) => username !== currentUser.username).join(", ")} {/* Display only the other user's username */}
               </span>
               <Button variant="primary">Open</Button>
             </li>
@@ -232,8 +242,8 @@ function Chat() {
 
       {selectedUser && (
         <div className="d-flex flex-column chatWindow">
-          <h2 className="chatHeader">Chat with {selectedUser.username}</h2>
-          <div className="flex-grow-1 d-flex flex-column chatMessages">
+        <h2 className="chatHeader">Chat with {selectedUser.username}</h2>
+        <div className="flex-grow-1 d-flex flex-column chatMessages">
             {messages.length > 0 ? (
               messages.map((msg, index) => (
                 <div
