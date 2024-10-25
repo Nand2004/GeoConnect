@@ -31,32 +31,32 @@ function Chat() {
 
   useEffect(() => {
     const fetchChatHistory = async () => {
-        if (currentUser) {
-            try {
-                const { data } = await axios.get(
-                    `http://localhost:8081/chat/chatGetByUserId/${currentUser.id}`
-                );
-                // Assuming data is an array of chat objects
-                const chatWithUsernames = await Promise.all(
-                    data.map(async (chat) => {
-                        const usernames = await Promise.all(
-                            chat.users.map(async (user) => {
-                                const response = await axios.get(`http://localhost:8081/user/getUsernameByUserId/${user.userId}`);
-                                return response.data.username;
-                            })
-                        );
-                        return { ...chat, usernames }; // Add usernames to the chat object
-                    })
-                );
-                setChatHistory(chatWithUsernames);
-            } catch (error) {
-                console.error("Error fetching chat history:", error);
-                setError("Error fetching chat history.");
-            }
+      if (currentUser) {
+        try {
+          const { data } = await axios.get(
+            `http://localhost:8081/chat/chatGetByUserId/${currentUser.id}`
+          );
+          // Assuming data is an array of chat objects
+          const chatWithUsernames = await Promise.all(
+            data.map(async (chat) => {
+              const usernames = await Promise.all(
+                chat.users.map(async (user) => {
+                  const response = await axios.get(`http://localhost:8081/user/getUsernameByUserId/${user.userId}`);
+                  return response.data.username;
+                })
+              );
+              return { ...chat, usernames }; // Add usernames to the chat object
+            })
+          );
+          setChatHistory(chatWithUsernames);
+        } catch (error) {
+          console.error("Error fetching chat history:", error);
+          setError("Error fetching chat history.");
         }
+      }
     };
     fetchChatHistory();
-}, [currentUser]);
+  }, [currentUser]);
 
   const handleSearch = async () => {
     if (!search) return;
@@ -158,6 +158,29 @@ function Chat() {
     }
   };
 
+  const handleDeleteChat = async (e, chatId) => {
+    e.stopPropagation();
+    try {
+      await axios.delete(`http://localhost:8081/chat/deleteChat/${chatId}`);
+      setChatHistory(prev => prev.filter(chat => chat._id !== chatId));
+      if (chatId === currentUser?.id) {
+        setSelectedUser(null);
+        setMessages([]);
+        setChatId(null);
+      }
+      setSuccessMessage("Chat deleted successfully");
+    } catch (error) {
+      console.error("Error deleting chat:", error);
+      setError("Error deleting chat");
+    }
+    setTimeout(() => {
+      setSuccessMessage("");
+      setError("");
+    }, 3000);
+  };
+
+
+
   useEffect(() => {
     if (socket) {
       socket.on("receiveMessage", (message) => {
@@ -209,7 +232,6 @@ function Chat() {
         {successMessage && <Alert variant="success">{successMessage}</Alert>}
 
         {/* Display chat history */}
-        <h4>Chat History</h4>
         <ul className="list-unstyled userList">
           {chatHistory.map((chat) => (
             <li
@@ -218,12 +240,16 @@ function Chat() {
               className="d-flex align-items-center justify-content-between userItem"
             >
               <span>
-                {chat.usernames.filter((username) => username !== currentUser.username).join(", ")} {/* Display only the other user's username */}
+                {chat.usernames.filter(username => username !== currentUser.username).join(", ")}
               </span>
-              <Button variant="primary">Open</Button>
+              <div className="d-flex gap-2">
+                <Button variant="primary" onClick={e => e.stopPropagation()}>Open</Button>
+                <Button variant="danger" onClick={e => handleDeleteChat(e, chat._id)}>Delete</Button>
+              </div>
             </li>
           ))}
         </ul>
+
 
         {/* Display search results */}
         <ul className="list-unstyled userList">
@@ -242,8 +268,8 @@ function Chat() {
 
       {selectedUser && (
         <div className="d-flex flex-column chatWindow">
-        <h2 className="chatHeader">Chat with {selectedUser.username}</h2>
-        <div className="flex-grow-1 d-flex flex-column chatMessages">
+          <h2 className="chatHeader">Chat with {selectedUser.username}</h2>
+          <div className="flex-grow-1 d-flex flex-column chatMessages">
             {messages.length > 0 ? (
               messages.map((msg, index) => (
                 <div
