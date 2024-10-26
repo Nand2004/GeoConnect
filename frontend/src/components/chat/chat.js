@@ -233,7 +233,7 @@ function Chat() {
 
         {/* Display chat history */}
         <ul className="list-unstyled userList">
-          {chatHistory.map((chat) => (
+        {chatHistory.slice().reverse().map((chat) => (
             <li
               key={chat._id}
               onClick={() => handleChatSelect(chat)}
