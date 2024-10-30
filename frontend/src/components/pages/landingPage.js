@@ -53,22 +53,6 @@ const Landingpage = () => {
       />
 
       {/* Logo */}
-      <div
-        className="position-absolute"
-        style={{
-          top: "20px",
-          left: "20px",
-          animation: "pulse 2s infinite ease-in-out",
-        }}
-      >
-        <FaMapMarkerAlt
-          style={{
-            fontSize: "70px",
-            color: "#FFD700",
-            filter: "drop-shadow(0 0 10px rgba(255, 215, 0, 0.5))",
-          }}
-        />
-      </div>
 
       <Row className="justify-content-center text-center w-100">
         <Col md={8} lg={6}>
