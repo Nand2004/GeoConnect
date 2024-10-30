@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Button, Alert } from "react-bootstrap";
+import { Button, Alert, Toast } from "react-bootstrap";
 import axios from "axios";
 import { io } from "socket.io-client";
 import getUserInfo from "../../utilities/decodeJwt";
@@ -21,6 +21,8 @@ function Chat() {
   const [notifications, setNotifications] = useState([]);
   const [showToast, setShowToast] = useState(false);
   const [currentNotification, setCurrentNotification] = useState(null);
+  const [unreadCounts, setUnreadCounts] = useState({}); // Track unread messages per chat
+
   
 
   useEffect(() => {
@@ -195,8 +197,8 @@ function Chat() {
       const handleMessage = (message) => {
         console.log("Listening Message:", message);
         
-        // Only add message if it's not from the current user
         if (message.chatId === chatId && message.sender !== currentUser.id) {
+          // Update messages for current chat
           setMessages((prev) => [
             ...prev,
             {
@@ -207,6 +209,13 @@ function Chat() {
           ]);
         }
         else if (message.sender !== currentUser?.id) {
+          // Update unread count for the chat
+          setUnreadCounts(prev => ({
+            ...prev,
+            [message.chatId]: (prev[message.chatId] || 0) + 1
+          }));
+  
+          // Show toast notification
           const notification = {
             id: Date.now(),
             message: message.message,
@@ -214,22 +223,21 @@ function Chat() {
             chatId: message.chatId,
             timestamp: new Date().toISOString()
           };
-
+          
           setNotifications(prev => [...prev, notification]);
           setCurrentNotification(notification);
           setShowToast(true);
         }
       };
   
-      // Attach the listener for "listeningMessage"
       socket.on("listeningMessage", handleMessage);
   
-      // Cleanup function to remove the listener
       return () => {
         socket.off("listeningMessage", handleMessage);
       };
     }
-  }, [socket, chatId, currentUser]); // Dependencies remain the same
+  }, [socket, chatId, currentUser]);
+  
   
   
   // Add this new component for notifications
@@ -256,12 +264,17 @@ function Chat() {
     </Toast>
   );
 
-  // Function to handle chat selection from history
-  const handleChatSelect = async (chat) => {
-    setSelectedUser(chat.users.find((user) => user.userId !== currentUser.id)); // Select the other user
-    setChatId(chat._id);
-    await loadMessages(chat._id); // Automatically load messages
-  };
+// Update your handleChatSelect function
+const handleChatSelect = async (chat) => {
+  setSelectedUser(chat.users.find((user) => user.userId !== currentUser.id));
+  setChatId(chat._id);
+  // Clear unread count when selecting a chat
+  setUnreadCounts(prev => ({
+    ...prev,
+    [chat._id]: 0
+  }));
+  await loadMessages(chat._id);
+};
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -295,21 +308,34 @@ function Chat() {
         {/* Display chat history */}
         <ul className="list-unstyled userList">
         {chatHistory.slice().reverse().map((chat) => (
-            <li
-              key={chat._id}
-              onClick={() => handleChatSelect(chat)}
-              className="d-flex align-items-center justify-content-between userItem"
-            >
-              <span>
+          <li
+            key={chat._id}
+            onClick={() => handleChatSelect(chat)}
+            className="chat-item"
+          >
+            <div className="chat-info">
+              <span className={`chat-name ${unreadCounts[chat._id] ? 'fw-bold' : ''}`}>
                 {chat.usernames.filter(username => username !== currentUser.username).join(", ")}
               </span>
-              <div className="d-flex gap-2">
-                <Button variant="primary" onClick={e => e.stopPropagation()}>Open</Button>
-                <Button variant="danger" onClick={e => handleDeleteChat(e, chat._id)}>Delete</Button>
-              </div>
-            </li>
-          ))}
-        </ul>
+              {unreadCounts[chat._id] > 0 && (
+                <>
+                  {unreadCounts[chat._id] === 1 ? (
+                    <span className="unread-indicator" />
+                  ) : (
+                    <span className="unread-count">
+                      {unreadCounts[chat._id]}
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+            <div className="d-flex gap-2">
+              <Button variant="primary" onClick={e => e.stopPropagation()}>Open</Button>
+              <Button variant="danger" onClick={e => handleDeleteChat(e, chat._id)}>Delete</Button>
+            </div>
+          </li>
+        ))}
+      </ul>
 
 
         {/* Display search results */}
