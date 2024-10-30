@@ -194,7 +194,7 @@ function Chat() {
 
   useEffect(() => {
     if (socket) {
-      const handleMessage = (message) => {
+      const handleMessage = async (message) => {
         console.log("Listening Message:", message);
         
         if (message.chatId === chatId && message.sender !== currentUser.id) {
@@ -208,25 +208,48 @@ function Chat() {
             },
           ]);
         }
+        // Only show notification if the message is for the current user
         else if (message.sender !== currentUser?.id) {
-          // Update unread count for the chat
-          setUnreadCounts(prev => ({
-            ...prev,
-            [message.chatId]: (prev[message.chatId] || 0) + 1
-          }));
-  
-          // Show toast notification
-          const notification = {
-            id: Date.now(),
-            message: message.message,
-            sender: message.sender,
-            chatId: message.chatId,
-            timestamp: new Date().toISOString()
-          };
-          
-          setNotifications(prev => [...prev, notification]);
-          setCurrentNotification(notification);
-          setShowToast(true);
+          try {
+            // Fetch sender's username
+            const response = await axios.get(
+              `http://localhost:8081/user/getUsernameByUserId/${message.sender}`
+            );
+            const senderUsername = response.data.username;
+
+            // Check if the current user is part of this chat
+            const chatResponse = await axios.get(
+              `http://localhost:8081/chat/chatGetByChatId/${message.chatId}`
+            );
+            
+            const isUserInChat = chatResponse.data.users.some(
+              user => user.userId === currentUser.id
+            );
+
+            if (isUserInChat) {
+              // Update unread count for the chat
+              setUnreadCounts(prev => ({
+                ...prev,
+                [message.chatId]: (prev[message.chatId] || 0) + 1
+              }));
+
+              // Show toast notification
+              const notification = {
+                id: Date.now(),
+                message: message.message,
+                sender: message.sender,
+                senderUsername: senderUsername,
+                chatId: message.chatId,
+                timestamp: new Date().toISOString()
+              };
+              
+              setNotifications(prev => [...prev, notification]);
+              setCurrentNotification(notification);
+              setShowToast(true);
+            }
+          } catch (error) {
+            console.error("Error fetching sender info:", error);
+          }
         }
       };
   
@@ -240,22 +263,15 @@ function Chat() {
   
   
   
-  // Add this new component for notifications
   const NotificationToast = () => (
-    <Toast 
-      style={{ 
-        position: 'fixed', 
-        top: 20, 
-        right: 20,
-        zIndex: 1000 
-      }}
+    <Toast className="toast-style" 
       onClose={() => setShowToast(false)}
       show={showToast}
       delay={3000}
       autohide
     >
       <Toast.Header>
-        <strong className="me-auto">New Message</strong>
+        <strong className="me-auto">Message from {currentNotification?.senderUsername}</strong>
         <small>{new Date(currentNotification?.timestamp).toLocaleTimeString()}</small>
       </Toast.Header>
       <Toast.Body>

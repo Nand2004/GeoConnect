@@ -151,4 +151,11 @@
     flex: 1;
   }
   
- 
+  .toast-style {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    color: red;
+  }
+  
