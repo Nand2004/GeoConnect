@@ -125,6 +125,17 @@ function Chat() {
 
   const handleSendMessage = async (message) => {
     if (!message.trim() || !chatId) return;
+  
+    // Immediately add the message to the messages state
+    const newMessage = {
+      userId: currentUser.id,
+      message: message,
+      timestamp: new Date().toISOString(),
+    };
+  
+    // Update the state immediately to reflect the sent message
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
+  
     try {
       const response = await axios.post(
         `http://localhost:8081/chat/chatSendMessage/${chatId}`,
@@ -133,17 +144,8 @@ function Chat() {
           message: message,
         }
       );
-
+  
       if (response.data) {
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          {
-            userId: currentUser.id,
-            message: message,
-            timestamp: new Date().toISOString(),
-          },
-        ]);
-
         // Emit the message through the socket
         socket.emit("sendingMessage", {
           chatId,
@@ -159,6 +161,7 @@ function Chat() {
     }
     console.log("sent message: ", message);
   };
+    
 
   const handleDeleteChat = async (e, chatId) => {
     e.stopPropagation();
@@ -185,11 +188,11 @@ function Chat() {
 
   useEffect(() => {
     if (socket) {
-      // Define the message handler function
       const handleMessage = (message) => {
         console.log("Listening Message:", message);
         
-        if (message.chatId === chatId) {
+        // Only add message if it's not from the current user
+        if (message.chatId === chatId && message.sender !== currentUser.id) {
           setMessages((prev) => [
             ...prev,
             {
@@ -201,15 +204,17 @@ function Chat() {
         }
       };
   
-      // Attach the listener for "listeningMessage" only once
+      // Attach the listener for "listeningMessage"
       socket.on("listeningMessage", handleMessage);
   
       // Cleanup function to remove the listener
       return () => {
-        socket.off("listeningMessage", handleMessage); // Remove specific listener
+        socket.off("listeningMessage", handleMessage);
       };
     }
-  }, [socket, chatId]); // Dependencies ensure the listener resets only when socket or chatId changes
+  }, [socket, chatId, currentUser]); // Dependencies remain the same
+  
+  
   
 
   // Function to handle chat selection from history
