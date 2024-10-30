@@ -27,8 +27,14 @@ const PrivateUserProfile = () => {
     setUser(getUserInfo());
   }, []);
 
-  if (!user) return <div><h4>Log in to view this page.</h4></div>;
-
+  if (!user || !user.id) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'white' }}>
+        <h4>Log in to view this page.</h4>
+      </div>
+    );
+  }
+  
   const { id, email, username } = user;
 
   return (
