@@ -303,7 +303,7 @@ const handleChatSelect = async (chat) => {
   }, [chatId]);
 
   return (
-    <div className="app">
+    <div className="app" style = {{paddingTop: '60px'}}>
 
       <NotificationToast />
 

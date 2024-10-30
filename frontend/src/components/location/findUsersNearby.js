@@ -50,7 +50,7 @@ const FindUsersNearby = () => {
   };
 
   return (
-    <Container style={styles.container}>
+    <Container style={{ ...styles.container, marginTop: '80px' }}>
       <h2 style={styles.title} className="text-center">Find Users Nearby</h2>
       <Row className="justify-content-center my-4">
         <Col md="6" className="text-center">

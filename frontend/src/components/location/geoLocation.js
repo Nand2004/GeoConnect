@@ -83,7 +83,7 @@ const GeolocationComponent = () => {
   };
 
   return (
-    <div className="container mt-5">
+    <div className="container mt-5" style={{ paddingTop: '25px' }}>
       <div className="card shadow-sm">
         <div className="card-header bg-primary text-white">
           <h3>Geolocation Tracker</h3>
