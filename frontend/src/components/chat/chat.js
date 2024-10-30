@@ -17,6 +17,7 @@ function Chat() {
   const [chatHistory, setChatHistory] = useState([]); // New state for chat history
   const [socket, setSocket] = useState(null);
   const [chatId, setChatId] = useState(null);
+  
 
   useEffect(() => {
     const userInfo = getUserInfo();
@@ -144,7 +145,7 @@ function Chat() {
         ]);
 
         // Emit the message through the socket
-        socket.emit("sendMessage", {
+        socket.emit("sendingMessage", {
           chatId,
           sender: currentUser.id,
           message,
@@ -156,6 +157,7 @@ function Chat() {
       console.error("Error sending message:", error);
       setError("Error sending message.");
     }
+    console.log("sent message: ", message);
   };
 
   const handleDeleteChat = async (e, chatId) => {
@@ -183,7 +185,10 @@ function Chat() {
 
   useEffect(() => {
     if (socket) {
-      socket.on("receiveMessage", (message) => {
+      // Define the message handler function
+      const handleMessage = (message) => {
+        console.log("Listening Message:", message);
+        
         if (message.chatId === chatId) {
           setMessages((prev) => [
             ...prev,
@@ -194,9 +199,18 @@ function Chat() {
             },
           ]);
         }
-      });
+      };
+  
+      // Attach the listener for "listeningMessage" only once
+      socket.on("listeningMessage", handleMessage);
+  
+      // Cleanup function to remove the listener
+      return () => {
+        socket.off("listeningMessage", handleMessage); // Remove specific listener
+      };
     }
-  }, [socket, chatId]);
+  }, [socket, chatId]); // Dependencies ensure the listener resets only when socket or chatId changes
+  
 
   // Function to handle chat selection from history
   const handleChatSelect = async (chat) => {

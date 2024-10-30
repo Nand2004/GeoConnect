@@ -74,8 +74,8 @@ app.get('*', (req, res) => {
 // Socket.io connection
 io.on("connection", (socket) => {
 
-  socket.on("user-message", (message) => {
-    io.emit("message", message); // Broadcast the message to all connected clients
+  socket.on("sendingMessage", (message) => {
+    io.emit("listeningMessage", message); // Broadcast the message to all connected clients
   });
 
   socket.on("disconnect", () => {

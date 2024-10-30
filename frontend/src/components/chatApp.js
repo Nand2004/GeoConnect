@@ -10,21 +10,21 @@ function ChatApp() {
 
   useEffect(() => {
     // Listen for incoming messages from the server
-    socket.on("message", (newMessage) => {
+    socket.on("listeningMessage", (newMessage) => {
       console.log("New message received:", newMessage);
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
 
     // Clean up the event listener when the component unmounts
     return () => {
-      socket.off("message");
+      socket.off("listeningMessage");
     };
   }, []);
 
   const sendMessage = () => {
     if (message.trim()) {
       console.log("Sending message:", message);
-      socket.emit("user-message", message);
+      socket.emit("sendingMessage", message);
       setMessage("");
     }
   };
