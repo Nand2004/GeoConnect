@@ -17,6 +17,10 @@ function Chat() {
   const [chatHistory, setChatHistory] = useState([]); // New state for chat history
   const [socket, setSocket] = useState(null);
   const [chatId, setChatId] = useState(null);
+
+  const [notifications, setNotifications] = useState([]);
+  const [showToast, setShowToast] = useState(false);
+  const [currentNotification, setCurrentNotification] = useState(null);
   
 
   useEffect(() => {
@@ -202,6 +206,19 @@ function Chat() {
             },
           ]);
         }
+        else if (message.sender !== currentUser?.id) {
+          const notification = {
+            id: Date.now(),
+            message: message.message,
+            sender: message.sender,
+            chatId: message.chatId,
+            timestamp: new Date().toISOString()
+          };
+
+          setNotifications(prev => [...prev, notification]);
+          setCurrentNotification(notification);
+          setShowToast(true);
+        }
       };
   
       // Attach the listener for "listeningMessage"
@@ -215,7 +232,29 @@ function Chat() {
   }, [socket, chatId, currentUser]); // Dependencies remain the same
   
   
-  
+  // Add this new component for notifications
+  const NotificationToast = () => (
+    <Toast 
+      style={{ 
+        position: 'fixed', 
+        top: 20, 
+        right: 20,
+        zIndex: 1000 
+      }}
+      onClose={() => setShowToast(false)}
+      show={showToast}
+      delay={3000}
+      autohide
+    >
+      <Toast.Header>
+        <strong className="me-auto">New Message</strong>
+        <small>{new Date(currentNotification?.timestamp).toLocaleTimeString()}</small>
+      </Toast.Header>
+      <Toast.Body>
+        {currentNotification?.message}
+      </Toast.Body>
+    </Toast>
+  );
 
   // Function to handle chat selection from history
   const handleChatSelect = async (chat) => {
@@ -236,6 +275,9 @@ function Chat() {
 
   return (
     <div className="app">
+
+      <NotificationToast />
+
       <div className="d-flex flex-column sidebar">
         <input
           type="text"
