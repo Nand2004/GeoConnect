@@ -3,31 +3,16 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
+import Card from "react-bootstrap/Card";
 
-const PRIMARY_COLOR = "#cc5c99";
-const SECONDARY_COLOR = "#0c0c1f";
 const url = "http://localhost:8081/user/signup";
 
 const Register = () => {
-  document.body.style.backgroundColor = "#0c0c1f";
+  document.body.style.backgroundColor = "#0c0c1f"; // Set the background color
   const [data, setData] = useState({ username: "", email: "", password: "", latitude: null, longitude: null });
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const [light, setLight] = useState(false);
-  const [bgColor, setBgColor] = useState(SECONDARY_COLOR);
-  const [bgText, setBgText] = useState("Light Mode");
 
-  useEffect(() => {
-    if (light) {
-      setBgColor("white");
-      setBgText("Dark mode");
-    } else {
-      setBgColor(SECONDARY_COLOR);
-      setBgText("Light mode");
-    }
-  }, [light]);
-
-  // Function to get user's geolocation from the browser
   const getUserLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
@@ -57,7 +42,6 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Ensure latitude and longitude are available before submitting
     if (data.latitude === null || data.longitude === null) {
       setError("Unable to retrieve location. Please enable location services.");
       return;
@@ -73,90 +57,69 @@ const Register = () => {
     }
   };
 
-  let labelStyling = {
-    color: PRIMARY_COLOR,
-    fontWeight: "bold",
-    textDecoration: "none",
-    fontSize: "x-large",
-  };
-
-  let backgroundStyling = { background: bgColor };
-  let buttonStyling = {
-    background: PRIMARY_COLOR,
-    borderStyle: "none",
-    color: bgColor,
-  };
-
   return (
     <>
       <section className="vh-100">
         <div className="container-fluid h-custom vh-100">
-          <div
-            className="row d-flex justify-content-center align-items-center h-100"
-            style={backgroundStyling}
-          >
+          <div className="row d-flex justify-content-center align-items-center h-100">
             <div className="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
-              <Form>
-                <Form.Group className="mb-3" controlId="formBasicUsername">
-                  <Form.Label style={labelStyling}>Username</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="username"
-                    onChange={handleChange}
-                    placeholder="Enter username"
-                  />
-                  <Form.Text className="text-muted">We just might sell your data</Form.Text>
-                </Form.Group>
+              <Card
+                className="text-center"
+                style={{
+                  background: "rgba(26, 26, 46, 0.8)",
+                  backdropFilter: "blur(10px)",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  borderRadius: "20px",
+                  padding: "40px 20px",
+                  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.4)",
+                }}
+              >
+                <Card.Title style={{ fontSize: "36px", color: "#FFD700", fontWeight: "bold" }}>
+                  Join the GeoConnect Community!
+                </Card.Title>
+                <Card.Text style={{ fontSize: "18px", color: "#e0e0e0", marginBottom: "30px" }}>
+                  Connect with people around you. Sign up to get started!
+                </Card.Text>
+                <hr style={{ border: "1px solid #FFD700", width: "60%", margin: "0 auto 20px" }} />
+                <Form onSubmit={handleSubmit}>
+                  <Form.Group className="mb-3" controlId="formBasicUsername">
+                    <Form.Label style={{ color: "#FFD700", fontWeight: "bold" }}>Username</Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="username"
+                      onChange={handleChange}
+                      placeholder="Enter username"
+                      style={{ background: "rgba(255, 255, 255, 0.1)", border: "1px solid rgba(255, 255, 255, 0.2)", color:"white"}}
+                    />
+                  </Form.Group>
 
-                <Form.Group className="mb-3" controlId="formBasicEmail">
-                  <Form.Label style={labelStyling}>Email</Form.Label>
-                  <Form.Control
-                    type="email"
-                    name="email"
-                    onChange={handleChange}
-                    placeholder="Enter email"
-                  />
-                  <Form.Text className="text-muted">We just might sell your data</Form.Text>
-                </Form.Group>
+                  <Form.Group className="mb-3" controlId="formBasicEmail">
+                    <Form.Label style={{ color: "#FFD700", fontWeight: "bold" }}>Email</Form.Label>
+                    <Form.Control
+                      type="email"
+                      name="email"
+                      onChange={handleChange}
+                      placeholder="Enter email"
+                      style={{ background: "rgba(255, 255, 255, 0.1)", border: "1px solid rgba(255, 255, 255, 0.2)", color:"white" }}
+                    />
+                  </Form.Group>
 
-                <Form.Group className="mb-3" controlId="formBasicPassword">
-                  <Form.Label style={labelStyling}>Password</Form.Label>
-                  <Form.Control
-                    type="password"
-                    name="password"
-                    onChange={handleChange}
-                    placeholder="Password"
-                  />
-                </Form.Group>
+                  <Form.Group className="mb-3" controlId="formBasicPassword">
+                    <Form.Label style={{ color: "#FFD700", fontWeight: "bold" }}>Password</Form.Label>
+                    <Form.Control
+                      type="password"
+                      name="password"
+                      onChange={handleChange}
+                      placeholder="Password"
+                      style={{ background: "rgba(255, 255, 255, 0.1)", border: "1px solid rgba(255, 255, 255, 0.2)",color:"white" }}
+                    />
+                  </Form.Group>
 
-                <div className="form-check form-switch">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    id="flexSwitchCheckDefault"
-                    onChange={() => setLight(!light)}
-                  />
-                  <label className="form-check-label text-muted" htmlFor="flexSwitchCheckDefault">
-                    {bgText}
-                  </label>
-                </div>
+                  {error && <div style={{ color: "#FF4500", fontSize: "1rem" }}>{error}</div>}
 
-                {error && (
-                  <div style={labelStyling} className="pt-3">
-                    {error}
-                  </div>
-                )}
-
-                <Button
-                  variant="primary"
-                  type="submit"
-                  onClick={handleSubmit}
-                  style={buttonStyling}
-                  className="mt-2"
-                >
-                  Register
-                </Button>
-              </Form>
+                  <Button variant="outline-warning" type="submit" className="mt-3">Register</Button>
+                </Form>
+              </Card>
             </div>
           </div>
         </div>
