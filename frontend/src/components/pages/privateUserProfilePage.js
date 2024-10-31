@@ -20,8 +20,9 @@ const PrivateUserProfile = () => {
   // Handle logout button
   const handleLogout = () => {
     localStorage.clear();
-    navigate("/");
-    window.location.reload(); // refresh to update navbar instantly
+    // Reload current page and navigate to privateUserProfile
+    navigate('/', { replace: true });
+    window.location.reload();
   };
 
   useEffect(() => {
@@ -92,15 +93,25 @@ const PrivateUserProfile = () => {
       </div>
 
       <Modal show={show} onHide={handleClose} backdrop="static" keyboard={false}>
-        <Modal.Header closeButton>
+        <Modal.Header
+          closeButton
+          style={{ background: "linear-gradient(135deg, #0c0c1f, #1a1a4a)", borderBottom: "1px solid rgba(255, 255, 255, 0.1)", color: "#fff" }}
+        >
           <Modal.Title>Log Out</Modal.Title>
         </Modal.Header>
-        <Modal.Body>Are you sure you want to log out?</Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>Close</Button>
-          <Button variant="primary" onClick={handleLogout}>Yes</Button>
+        <Modal.Body style={{ background: "rgba(26, 26, 46, 0.8)", color: "#d3d3d3" }}>
+          Are you sure you want to log out?
+        </Modal.Body>
+        <Modal.Footer style={{ background: "rgba(26, 26, 46, 0.8)", borderTop: "1px solid rgba(255, 255, 255, 0.1)" }}>
+          <Button variant="secondary" onClick={handleClose} style={{ background: "rgba(255, 255, 255, 0.1)", border: "1px solid rgba(255, 255, 255, 0.2)", color: "#fff" }}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleLogout} style={{ background: "linear-gradient(135deg, #FFD700, #cc5c99)", border: "none", color: "#fff" }}>
+            Yes
+          </Button>
         </Modal.Footer>
       </Modal>
+
     </div>
   );
 };
