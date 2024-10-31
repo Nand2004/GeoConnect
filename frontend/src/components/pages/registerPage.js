@@ -89,7 +89,7 @@ const Register = () => {
                       name="username"
                       onChange={handleChange}
                       placeholder="Enter username"
-                      style={{ background: "rgba(255, 255, 255, 0.1)", border: "1px solid rgba(255, 255, 255, 0.2)", color:"white"}}
+                      style={{ background: "rgba(255, 255, 255, 0.1)", border: "1px solid rgba(255, 255, 255, 0.2)", color:"white" }}
                     />
                   </Form.Group>
 
@@ -100,7 +100,7 @@ const Register = () => {
                       name="email"
                       onChange={handleChange}
                       placeholder="Enter email"
-                      style={{ background: "rgba(255, 255, 255, 0.1)", border: "1px solid rgba(255, 255, 255, 0.2)", color:"white" }}
+                      style={{ background: "rgba(255, 255, 255, 0.1)", border: "1px solid rgba(255, 255, 255, 0.2)", color:"white"}}
                     />
                   </Form.Group>
 
@@ -111,7 +111,7 @@ const Register = () => {
                       name="password"
                       onChange={handleChange}
                       placeholder="Password"
-                      style={{ background: "rgba(255, 255, 255, 0.1)", border: "1px solid rgba(255, 255, 255, 0.2)",color:"white" }}
+                      style={{ background: "rgba(255, 255, 255, 0.1)", border: "1px solid rgba(255, 255, 255, 0.2)", color:"white" }}
                     />
                   </Form.Group>
 
