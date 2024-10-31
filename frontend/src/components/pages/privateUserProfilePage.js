@@ -21,6 +21,7 @@ const PrivateUserProfile = () => {
   const handleLogout = () => {
     localStorage.clear();
     navigate("/");
+    window.location.reload(); // refresh to update navbar instantly
   };
 
   useEffect(() => {

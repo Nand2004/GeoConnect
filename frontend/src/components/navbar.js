@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar, Nav, Container, Button } from 'react-bootstrap';
 import { FaMapMarkerAlt } from 'react-icons/fa';
+import getUserInfo from '../utilities/decodeJwt'; // Import your utility
 
 const NavigationBar = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
+    const user = getUserInfo();
+    setIsLoggedIn(user && user.id); // Set logged-in state based on user info
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -45,14 +50,17 @@ const NavigationBar = () => {
 
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto" style={{ gap: '10px' }}>
-            {navLinks.map(({ href, label }) => (
-              <Nav.Link key={label} href={href} style={linkStyle}>
-                {label}
-              </Nav.Link>
-            ))}
-            <Button variant="outline-light" href="/login" style={buttonStyle}>
-              Login
-            </Button>
+            {isLoggedIn ? (
+              navLinks.map(({ href, label }) => (
+                <Nav.Link key={label} href={href} style={linkStyle}>
+                  {label}
+                </Nav.Link>
+              ))
+            ) : (
+              <Button variant="outline-light" href="/login" style={buttonStyle}>
+                Login
+              </Button>
+            )}
           </Nav>
         </Navbar.Collapse>
       </Container>
