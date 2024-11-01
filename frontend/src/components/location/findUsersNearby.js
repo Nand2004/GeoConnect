@@ -86,7 +86,9 @@ const FindUsersNearby = () => {
 const AlertMessage = ({ message, variant }) => (
   <Row className="justify-content-center">
     <Col md="6">
-      <Alert variant={variant}>{message}</Alert>
+      <Alert variant={variant} style={styles.alert}>
+        {message}
+      </Alert>
     </Col>
   </Row>
 );
@@ -152,17 +154,17 @@ const MapComponent = ({ location, googleMapsApiKey, nearbyUsers, selectedUser, s
 
 const styles = {
   container: {
-    background: 'linear-gradient(135deg, #74ebd5 0%, #acb6e5 100%)',
+    background: 'linear-gradient(135deg, #0a0a19 0%, #1a1a4a 50%, #0a0a19 100%)',
     borderRadius: '15px',
     padding: '30px',
     boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
-    color: 'black',
-    marginTop: '30px',
+    color: '#ffffff',
+    minHeight: '100vh', // Full height
   },
   title: {
     fontFamily: 'Montserrat, sans-serif',
     fontSize: '2.5rem',
-    color: '#fff',
+    color: '#FFD700',
     textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)',
     marginBottom: '30px',
   },
@@ -172,6 +174,12 @@ const styles = {
     fontSize: '1.2rem',
     padding: '10px 20px',
     transition: 'all 0.3s ease',
+    borderRadius: '20px',
+    color: '#fff',
+  },
+  alert: {
+    borderRadius: '10px',
+    padding: '15px',
   },
   card: {
     backgroundColor: '#2f3542',
@@ -179,10 +187,11 @@ const styles = {
     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
     borderRadius: '15px',
     transition: 'transform 0.3s ease',
-    color: '#fff',
+    color: '#ffffff',
   },
   gradientBg: {
     background: 'linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%)',
+    borderRadius: '15px',
   },
 };
 
