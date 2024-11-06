@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Button, Alert, Toast } from "react-bootstrap";
+import { Button, Alert, Toast, Modal, Form } from "react-bootstrap";
 import axios from "axios";
 import { io } from "socket.io-client";
 import getUserInfo from "../../utilities/decodeJwt";
@@ -14,16 +14,19 @@ function Chat() {
   const [successMessage, setSuccessMessage] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [chatHistory, setChatHistory] = useState([]); // New state for chat history
+  const [chatHistory, setChatHistory] = useState([]);
   const [socket, setSocket] = useState(null);
   const [chatId, setChatId] = useState(null);
-
   const [notifications, setNotifications] = useState([]);
   const [showToast, setShowToast] = useState(false);
   const [currentNotification, setCurrentNotification] = useState(null);
-  const [unreadCounts, setUnreadCounts] = useState({}); // Track unread messages per chat
+  const [unreadCounts, setUnreadCounts] = useState({});
 
-  
+  // New states for user selection modal
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [groupName, setGroupName] = useState("");
+  const [chatMode, setChatMode] = useState("direct"); // "direct" or "group"
 
   useEffect(() => {
     const userInfo = getUserInfo();
@@ -43,7 +46,6 @@ function Chat() {
           const { data } = await axios.get(
             `http://localhost:8081/chat/chatGetByUserId/${currentUser.id}`
           );
-          // Assuming data is an array of chat objects
           const chatWithUsernames = await Promise.all(
             data.map(async (chat) => {
               const usernames = await Promise.all(
@@ -52,7 +54,7 @@ function Chat() {
                   return response.data.username;
                 })
               );
-              return { ...chat, usernames }; // Add usernames to the chat object
+              return { ...chat, usernames };
             })
           );
           setChatHistory(chatWithUsernames);
@@ -66,25 +68,47 @@ function Chat() {
   }, [currentUser]);
 
   const handleSearch = async () => {
-    if (!search) return;
+    if (!search) {
+      setSearchResults([]);
+      return;
+    }
     try {
       const { data } = await axios.get(
         `http://localhost:8081/user/userSearchUser?username=${search}`
       );
-      setSearchResults(data);
+      const filteredResults = data.filter(user => user._id !== currentUser.id);
+      setSearchResults(filteredResults);
       setError("");
     } catch {
       setError("Error searching for users.");
     }
   };
 
-  const handleCreateChat = async (selectedUser) => {
-    if (!currentUser) return;
+  const handleUserSelect = (user) => {
+    if (selectedUsers.some(selected => selected._id === user._id)) {
+      setSelectedUsers(selectedUsers.filter(selected => selected._id !== user._id));
+    } else {
+      if (chatMode === "direct") {
+        setSelectedUsers([user]); // Only one user for direct chat
+      } else {
+        setSelectedUsers([...selectedUsers, user]);
+      }
+    }
+  };
+
+
+ 
+  const handleCreateChat = async () => {
+    if (!currentUser || !selectedUsers.length) return;
 
     try {
+      const userIds = [currentUser.id, ...selectedUsers.map(user => user._id)];
+      const isGroup = chatMode === "group" && selectedUsers.length > 1;
+
       const body = {
-        chatType: "direct",
-        users: [currentUser.id, selectedUser._id],
+        chatType: isGroup ? "group" : "direct",
+        users: userIds,
+        ...(isGroup && { groupName })
       };
 
       const response = await axios.post(
@@ -92,12 +116,21 @@ function Chat() {
         body
       );
 
+      console.log(groupName);
+
       if (response.data && response.data._id) {
         const chatId = response.data._id;
         setChatId(chatId);
-        setSuccessMessage(`Chat created with ${selectedUser.username}`);
+        setSuccessMessage(
+          isGroup 
+            ? `Group chat "${groupName}" created`
+            : `Chat created with ${selectedUsers[0].username}`
+        );
         setSearchResults([]);
-        setSelectedUser(selectedUser);
+        setSelectedUser(isGroup ? null : selectedUsers[0]);
+        setShowUserModal(false);
+        setSelectedUsers([]);
+        setGroupName("");
         await loadMessages(chatId);
       } else {
         setError("Chat creation failed. Please try again.");
@@ -190,7 +223,15 @@ function Chat() {
     }, 3000);
   };
 
-
+  const handleChatSelect = async (chat) => {
+    setSelectedUser(chat.users.find((user) => user.userId !== currentUser.id));
+    setChatId(chat._id);
+    setUnreadCounts(prev => ({
+      ...prev,
+      [chat._id]: 0
+    }));
+    await loadMessages(chat._id);
+  };
 
   useEffect(() => {
     if (socket) {
@@ -217,7 +258,6 @@ function Chat() {
             );
             const senderUsername = response.data.username;
 
-            // Check if the current user is part of this chat
             const chatResponse = await axios.get(
               `http://localhost:8081/chat/chatGetByChatId/${message.chatId}`
             );
@@ -227,13 +267,11 @@ function Chat() {
             );
 
             if (isUserInChat) {
-              // Update unread count for the chat
               setUnreadCounts(prev => ({
                 ...prev,
                 [message.chatId]: (prev[message.chatId] || 0) + 1
               }));
 
-              // Show toast notification
               const notification = {
                 id: Date.now(),
                 message: message.message,
@@ -262,9 +300,10 @@ function Chat() {
   }, [socket, chatId, currentUser]);
   
   
-  
+
   const NotificationToast = () => (
-    <Toast className="toast-style" 
+    <Toast 
+      className="toast-style" 
       onClose={() => setShowToast(false)}
       show={showToast}
       delay={3000}
@@ -280,90 +319,151 @@ function Chat() {
     </Toast>
   );
 
-// Update your handleChatSelect function
-const handleChatSelect = async (chat) => {
-  setSelectedUser(chat.users.find((user) => user.userId !== currentUser.id));
-  setChatId(chat._id);
-  // Clear unread count when selecting a chat
-  setUnreadCounts(prev => ({
-    ...prev,
-    [chat._id]: 0
-  }));
-  await loadMessages(chat._id);
-};
+  const UserSelectionModal = () => (
+    <Modal show={showUserModal} onHide={() => setShowUserModal(false)}>
+      <Modal.Header closeButton>
+        <Modal.Title>
+          {chatMode === "group" ? "Create Group Chat" : "Start New Chat"}
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        {chatMode === "group" && (
+          <Form.Group className="mb-3">
+            <Form.Label>Group Name</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Enter group name"
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
+            />
+          </Form.Group>
+        )}
+        
+        <Form.Group className="mb-3">
+          <Form.Label>Search Users</Form.Label>
+          <div className="d-flex gap-2">
+            <Form.Control
+              type="text"
+              placeholder="Search by username..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                handleSearch();
+              }}
+            />
+          </div>
+        </Form.Group>
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (chatId) {
-        loadMessages(chatId); // Optionally refresh messages every few seconds
-      }
-    }, 5000);
+        {selectedUsers.length > 0 && (
+          <div className="selected-users mb-3">
+            <strong>Selected Users:</strong>
+            <div className="d-flex flex-wrap gap-2 mt-2">
+              {selectedUsers.map(user => (
+                <span key={user._id} className="badge bg-primary">
+                  {user.username}
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white ms-2"
+                    onClick={() => handleUserSelect(user)}
+                  />
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
-    return () => clearInterval(interval); // Cleanup on component unmount
-  }, [chatId]);
+        <div className="search-results">
+          {searchResults.map(user => (
+            <div
+              key={user._id}
+              className="search-result-item"
+              onClick={() => handleUserSelect(user)}
+            >
+              <span>{user.username}</span>
+              <Form.Check
+                type="checkbox"
+                checked={selectedUsers.some(selected => selected._id === user._id)}
+                onChange={() => {}}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          ))}
+        </div>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={() => setShowUserModal(false)}>
+          Cancel
+        </Button>
+        <Button
+          variant="primary"
+          onClick={handleCreateChat}
+          disabled={
+            selectedUsers.length === 0 ||
+            (chatMode === "group" && (!groupName.trim() || selectedUsers.length < 2))
+          }
+        >
+          {chatMode === "group" ? "Create Group" : "Start Chat"}
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
 
   return (
-    <div className="app" style = {{paddingTop: '60px'}}>
-
+    <div className="app" style={{ paddingTop: '60px' }}>
       <NotificationToast />
+      <UserSelectionModal />
 
       <div className="d-flex flex-column sidebar">
-        <input
-          type="text"
-          className="form-control searchBar"
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <Button variant="primary" onClick={handleSearch}>
-          Search
-        </Button>
+        <div className="chat-actions mb-3">
+          <Button 
+            variant="primary" 
+            className="me-2"
+            onClick={() => {
+              setChatMode("direct");
+              setShowUserModal(true);
+              setSelectedUsers([]);
+              setSearch("");
+            }}
+          >
+            + New Chat
+          </Button>
+          <Button 
+            variant="success"
+            onClick={() => {
+              setChatMode("group");
+              setShowUserModal(true);
+              setSelectedUsers([]);
+              setSearch("");
+              setGroupName("");
+            }}
+          >
+            + New Group
+          </Button>
+        </div>
+
         {error && <Alert variant="danger">{error}</Alert>}
         {successMessage && <Alert variant="success">{successMessage}</Alert>}
 
-        {/* Display chat history */}
         <ul className="list-unstyled userList">
-        {chatHistory.slice().reverse().map((chat) => (
-          <li
-            key={chat._id}
-            onClick={() => handleChatSelect(chat)}
-            className="chat-item"
-          >
-            <div className="chat-info">
-              <span className={`chat-name ${unreadCounts[chat._id] ? 'fw-bold' : ''}`}>
-                {chat.usernames.filter(username => username !== currentUser.username).join(", ")}
-              </span>
-              {unreadCounts[chat._id] > 0 && (
-                <>
-                  {unreadCounts[chat._id] === 1 ? (
-                    <span className="unread-indicator" />
-                  ) : (
-                    <span className="unread-count">
-                      {unreadCounts[chat._id]}
-                    </span>
-                  )}
-                </>
-              )}
-            </div>
-            <div className="d-flex gap-2">
-              <Button variant="primary" onClick={e => e.stopPropagation()}>Open</Button>
-              <Button variant="danger" onClick={e => handleDeleteChat(e, chat._id)}>Delete</Button>
-            </div>
-          </li>
-        ))}
-      </ul>
-
-
-        {/* Display search results */}
-        <ul className="list-unstyled userList">
-          {searchResults.map((user) => (
+          {chatHistory.slice().reverse().map((chat) => (
             <li
-              key={user._id}
-              onClick={() => handleCreateChat(user)}
-              className="d-flex align-items-center justify-content-between userItem"
+              key={chat._id}
+              onClick={() => handleChatSelect(chat)}
+              className="chat-item"
             >
-              <span>{user.username}</span>
-              <Button variant="primary">Start Chat</Button>
+              <div className="chat-info">
+                <span className={`chat-name ${unreadCounts[chat._id] ? 'fw-bold' : ''}`}>
+                  {chat.chatType === "group" 
+                    ? chat.groupName 
+                    : chat.usernames.filter(username => username !== currentUser.username).join(", ")}
+                </span>
+                {unreadCounts[chat._id] > 0 && (
+                  <span className="unread-count">{unreadCounts[chat._id]}</span>
+                )}
+              </div>
+              <div className="d-flex gap-2">
+                <Button variant="danger" onClick={e => handleDeleteChat(e, chat._id)}>Delete</Button>
+              </div>
             </li>
           ))}
         </ul>
