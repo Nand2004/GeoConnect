@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Button, Alert, Toast} from "react-bootstrap";
+import { Button, Alert, Toast } from "react-bootstrap";
 import axios from "axios";
 import { io } from "socket.io-client";
 import getUserInfo from "../../utilities/decodeJwt";
 import "./chat.css";
 import UserSelectionModal from "./userSelectionModal"; // Import the modal
+import { MdOutlineGroup } from "react-icons/md";
 
 
 function Chat() {
@@ -100,30 +101,30 @@ function Chat() {
   };
 
 
- 
+
   const handleCreateChat = async () => {
     if (!currentUser || !selectedUsers.length) return;
-  
+
     try {
       const userIds = [currentUser.id, ...selectedUsers.map(user => user._id)];
       const isGroup = chatMode === "group" && selectedUsers.length > 1;
-  
+
       const body = {
         chatType: isGroup ? "group" : "direct",
         users: userIds,
         ...(isGroup && { chatName: groupName }) // Store the group name as chatName in the request body
       };
-  
+
       const response = await axios.post(
         "http://localhost:8081/chat/chatCreateChat",
         body
       );
-  
+
       if (response.data && response.data._id) {
         const chatId = response.data._id;
         setChatId(chatId);
         setSuccessMessage(
-          isGroup 
+          isGroup
             ? `Group chat "${groupName}" created`
             : `Chat created with ${selectedUsers[0].username}`
         );
@@ -145,7 +146,7 @@ function Chat() {
       setError("");
     }, 3000);
   };
-  
+
 
   const loadMessages = async (chatId) => {
     try {
@@ -170,17 +171,17 @@ function Chat() {
 
   const handleSendMessage = async (message) => {
     if (!message.trim() || !chatId) return;
-  
+
     // Immediately add the message to the messages state
     const newMessage = {
       userId: currentUser.id,
       message: message,
       timestamp: new Date().toISOString(),
     };
-  
+
     // Update the state immediately to reflect the sent message
     setMessages((prevMessages) => [...prevMessages, newMessage]);
-  
+
     try {
       const response = await axios.post(
         `http://localhost:8081/chat/chatSendMessage/${chatId}`,
@@ -189,7 +190,7 @@ function Chat() {
           message: message,
         }
       );
-  
+
       if (response.data) {
         // Emit the message through the socket
         socket.emit("sendingMessage", {
@@ -206,7 +207,7 @@ function Chat() {
     }
     console.log("sent message: ", message);
   };
-    
+
 
   const handleDeleteChat = async (e, chatId) => {
     e.stopPropagation();
@@ -243,7 +244,7 @@ function Chat() {
     if (socket) {
       const handleMessage = async (message) => {
         console.log("Listening Message:", message);
-        
+
         if (message.chatId === chatId && message.sender !== currentUser.id) {
           // Update messages for current chat
           setMessages((prev) => [
@@ -267,7 +268,7 @@ function Chat() {
             const chatResponse = await axios.get(
               `http://localhost:8081/chat/chatGetByChatId/${message.chatId}`
             );
-            
+
             const isUserInChat = chatResponse.data.users.some(
               user => user.userId === currentUser.id
             );
@@ -286,7 +287,7 @@ function Chat() {
                 chatId: message.chatId,
                 timestamp: new Date().toISOString()
               };
-              
+
               setNotifications(prev => [...prev, notification]);
               setCurrentNotification(notification);
               setShowToast(true);
@@ -296,18 +297,18 @@ function Chat() {
           }
         }
       };
-  
+
       socket.on("listeningMessage", handleMessage);
-  
+
       return () => {
         socket.off("listeningMessage", handleMessage);
       };
     }
   }, [socket, chatId, currentUser]);
-  
+
   const NotificationToast = () => (
-    <Toast 
-      className="toast-style" 
+    <Toast
+      className="toast-style"
       onClose={() => setShowToast(false)}
       show={showToast}
       delay={3000}
@@ -345,8 +346,8 @@ function Chat() {
 
       <div className="d-flex flex-column sidebar">
         <div className="chat-actions mb-3">
-          <Button 
-            variant="primary" 
+          <Button
+            variant="primary"
             className="me-2"
             onClick={() => {
               setChatMode("direct");
@@ -357,7 +358,7 @@ function Chat() {
           >
             + New Chat
           </Button>
-          <Button 
+          <Button
             variant="success"
             onClick={() => {
               setChatMode("group");
@@ -375,35 +376,57 @@ function Chat() {
         {successMessage && <Alert variant="success">{successMessage}</Alert>}
 
         <ul className="list-unstyled userList">
-  {chatHistory.slice().reverse().map((chat) => (
-    <li
-      key={chat._id}
-      onClick={() => handleChatSelect(chat)}
-      className="chat-item"
-    >
-      <div className="chat-info">
-        <span className={`chat-name ${unreadCounts[chat._id] ? 'fw-bold' : ''}`}>
-          {chat.chatType === "group" 
-            ? chat.groupName || chat.chatName // If groupName is available, use it. Otherwise, fallback to chatName.
-            : chat.usernames.filter(username => username !== currentUser.username).join(", ")
-          }
-        </span>
-        {unreadCounts[chat._id] > 0 && (
-          <span className="unread-count">{unreadCounts[chat._id]}</span>
-        )}
-      </div>
-      <div className="d-flex gap-2">
-        <Button variant="danger" onClick={e => handleDeleteChat(e, chat._id)}>Delete</Button>
-      </div>
-    </li>
-  ))}
-</ul>
+          {chatHistory.slice().reverse().map((chat) => (
+            <li
+              key={chat._id}
+              onClick={() => handleChatSelect(chat)}
+              className="chat-item"
+            >
+              <div className="chat-info">
+                <span className={`chat-name ${unreadCounts[chat._id] ? 'fw-bold' : ''}`}>
+                  {chat.chatType === "group"
+                    ? (
+                      <>
+                        {chat.chatName}
+                        <MdOutlineGroup className="nextIcon" style={{ marginLeft: '10px', fontSize: '20px' }} />
+                      </>
+                    )
+                    : chat.usernames.filter(username => username !== currentUser.username).join(", ")
+                  }
+
+                </span>
+                {unreadCounts[chat._id] > 0 && (
+                  <span className="unread-count">{unreadCounts[chat._id]}</span>
+                )}
+              </div>
+              <div className="d-flex gap-2">
+                <Button variant="danger" onClick={e => handleDeleteChat(e, chat._id)}>Delete</Button>
+              </div>
+            </li>
+          ))}
+        </ul>
 
       </div>
 
-      {selectedUser && (
+      {chatId && (
         <div className="d-flex flex-column chatWindow">
-          <h2 className="chatHeader">Chat with {selectedUser.username}</h2>
+          <h2 className="chatHeader">
+            {chatHistory
+              .find((chat) => chat._id === chatId) // Find the chat by chatId
+              ?.chatType === "group"
+              ? (
+                <>
+                  {chatHistory
+                    .find((chat) => chat._id === chatId)
+                    ?.chatName || "Unnamed Group"}
+                  <MdOutlineGroup className="nextIcon" style={{ marginLeft: '10px', fontSize: '20px' }} />
+                </>
+              )
+              : `${chatHistory
+                .find((chat) => chat._id === chatId)
+                ?.usernames.filter((username) => username !== currentUser.username)
+                .join(", ")}`}
+          </h2>
           <div className="flex-grow-1 d-flex flex-column chatMessages">
             {messages.length > 0 ? (
               messages.map((msg, index) => (
@@ -442,6 +465,9 @@ function Chat() {
           </form>
         </div>
       )}
+
+
+
     </div>
   );
 }
