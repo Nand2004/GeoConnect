@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Button, Alert, Toast, Modal, Form } from "react-bootstrap";
+import { Button, Alert, Toast} from "react-bootstrap";
 import axios from "axios";
 import { io } from "socket.io-client";
 import getUserInfo from "../../utilities/decodeJwt";
@@ -119,8 +119,6 @@ function Chat() {
         body
       );
 
-      console.log(groupName);
-
       if (response.data && response.data._id) {
         const chatId = response.data._id;
         setChatId(chatId);
@@ -129,6 +127,7 @@ function Chat() {
             ? `Group chat "${groupName}" created`
             : `Chat created with ${selectedUsers[0].username}`
         );
+        console.log(groupName);
         setSearchResults([]);
         setSelectedUser(isGroup ? null : selectedUsers[0]);
         setShowUserModal(false);
