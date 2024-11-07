@@ -23,6 +23,11 @@ const newUserSchema = new mongoose.Schema(
       type: Date,
       default: Date.now, // Default value preserved
     },
+    imageId: {
+      type: String,
+      label: "imageId",
+      required: false,
+    },
     // Adding the location field
     location: {
       type: {
