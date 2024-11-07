@@ -103,22 +103,22 @@ function Chat() {
  
   const handleCreateChat = async () => {
     if (!currentUser || !selectedUsers.length) return;
-
+  
     try {
       const userIds = [currentUser.id, ...selectedUsers.map(user => user._id)];
       const isGroup = chatMode === "group" && selectedUsers.length > 1;
-
+  
       const body = {
         chatType: isGroup ? "group" : "direct",
         users: userIds,
-        ...(isGroup && { groupName })
+        ...(isGroup && { chatName: groupName }) // Store the group name as chatName in the request body
       };
-
+  
       const response = await axios.post(
         "http://localhost:8081/chat/chatCreateChat",
         body
       );
-
+  
       if (response.data && response.data._id) {
         const chatId = response.data._id;
         setChatId(chatId);
@@ -127,12 +127,11 @@ function Chat() {
             ? `Group chat "${groupName}" created`
             : `Chat created with ${selectedUsers[0].username}`
         );
-        console.log(groupName);
         setSearchResults([]);
         setSelectedUser(isGroup ? null : selectedUsers[0]);
         setShowUserModal(false);
         setSelectedUsers([]);
-        setGroupName("");
+        setGroupName(""); // Reset group name field
         await loadMessages(chatId);
       } else {
         setError("Chat creation failed. Please try again.");
@@ -146,6 +145,7 @@ function Chat() {
       setError("");
     }, 3000);
   };
+  
 
   const loadMessages = async (chatId) => {
     try {
@@ -375,28 +375,30 @@ function Chat() {
         {successMessage && <Alert variant="success">{successMessage}</Alert>}
 
         <ul className="list-unstyled userList">
-          {chatHistory.slice().reverse().map((chat) => (
-            <li
-              key={chat._id}
-              onClick={() => handleChatSelect(chat)}
-              className="chat-item"
-            >
-              <div className="chat-info">
-                <span className={`chat-name ${unreadCounts[chat._id] ? 'fw-bold' : ''}`}>
-                  {chat.chatType === "group" 
-                    ? chat.groupName 
-                    : chat.usernames.filter(username => username !== currentUser.username).join(", ")}
-                </span>
-                {unreadCounts[chat._id] > 0 && (
-                  <span className="unread-count">{unreadCounts[chat._id]}</span>
-                )}
-              </div>
-              <div className="d-flex gap-2">
-                <Button variant="danger" onClick={e => handleDeleteChat(e, chat._id)}>Delete</Button>
-              </div>
-            </li>
-          ))}
-        </ul>
+  {chatHistory.slice().reverse().map((chat) => (
+    <li
+      key={chat._id}
+      onClick={() => handleChatSelect(chat)}
+      className="chat-item"
+    >
+      <div className="chat-info">
+        <span className={`chat-name ${unreadCounts[chat._id] ? 'fw-bold' : ''}`}>
+          {chat.chatType === "group" 
+            ? chat.groupName || chat.chatName // If groupName is available, use it. Otherwise, fallback to chatName.
+            : chat.usernames.filter(username => username !== currentUser.username).join(", ")
+          }
+        </span>
+        {unreadCounts[chat._id] > 0 && (
+          <span className="unread-count">{unreadCounts[chat._id]}</span>
+        )}
+      </div>
+      <div className="d-flex gap-2">
+        <Button variant="danger" onClick={e => handleDeleteChat(e, chat._id)}>Delete</Button>
+      </div>
+    </li>
+  ))}
+</ul>
+
       </div>
 
       {selectedUser && (
