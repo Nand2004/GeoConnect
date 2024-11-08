@@ -64,11 +64,14 @@ app.use('/chat', require('./routes/chat/chatDeleteAll'));
 app.use('/chat', require('./routes/chat/chatGetByUserId'));
 app.use('/chat', require('./routes/chat/chatDeleteChat'));
 
-// Image routes
-app.use('/image', require('./routes/image/imageGetAll'));
-app.use('/image', require('./routes/image/imageDelete'));
-app.use('/image', require('./routes/image/imageGetById'));
-app.use('/image', require('./routes/image/imageAdd'));
+// // Image routes
+
+app.use('/image', require('./routes/images'));
+
+// app.use('/image', require('./routes/image/imageGetAll'));
+// app.use('/image', require('./routes/image/imageDelete'));
+// app.use('/image', require('./routes/image/imageGetById'));
+// app.use('/image', require('./routes/image/imageAdd'));
 
 
 // Serve static files from React app's build folder

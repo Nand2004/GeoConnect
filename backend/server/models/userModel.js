@@ -28,6 +28,11 @@ const newUserSchema = new mongoose.Schema(
       label: "imageId",
       required: false,
     },
+    profileImage: {
+      type: String,
+      label: "profileImage",
+      required: false,
+    },
     // Adding the location field
     location: {
       type: {
