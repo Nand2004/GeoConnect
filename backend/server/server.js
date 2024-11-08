@@ -66,13 +66,12 @@ app.use('/chat', require('./routes/chat/chatDeleteChat'));
 
 // // Image routes
 
-app.use('/image', require('./routes/images'));
+// app.use('/image', require('./routes/images'));
 
-// app.use('/image', require('./routes/image/imageGetAll'));
-// app.use('/image', require('./routes/image/imageDelete'));
-// app.use('/image', require('./routes/image/imageGetById'));
-// app.use('/image', require('./routes/image/imageAdd'));
-
+app.use('/image', require('./routes/image/createImage'));
+app.use('/image', require('./routes/image/deleteImage'));
+app.use('/image', require('./routes/image/profileImageUpload'));
+app.use('/image', require('./routes/image/profileImageRemove'));
 
 // Serve static files from React app's build folder
 app.use(express.static(path.join(__dirname, 'build')));
