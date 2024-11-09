@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Card, Button, Container, Row, Col, Spinner, Alert } from 'react-bootstrap';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
+import { MapPin, Users, Loader2, AlertCircle, Mail, Navigation, Search } from 'lucide-react';
 
 const FindUsersNearby = () => {
   const [location, setLocation] = useState({ latitude: null, longitude: null });
@@ -10,6 +11,7 @@ const FindUsersNearby = () => {
   const [error, setError] = useState(null);
   const [message, setMessage] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
+  const [searchDistance, setSearchDistance] = useState(500);
 
   const googleMapsApiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
@@ -35,7 +37,7 @@ const FindUsersNearby = () => {
   const findUsersNearby = async (latitude, longitude) => {
     try {
       const { data } = await axios.get('http://localhost:8081/user/locationGetNearby', {
-        params: { latitude, longitude, distance: 500 },
+        params: { latitude, longitude, distance: searchDistance },
       });
       setNearbyUsers(data);
       if (data.length === 0) setMessage('No users found nearby.');
@@ -45,154 +47,256 @@ const FindUsersNearby = () => {
     setLoading(false);
   };
 
-  const buttonHover = (e, isHover) => {
-    e.target.style.backgroundColor = isHover ? '#ff4757' : '#ff6b6b';
-  };
-
   return (
-    <Container style={{ ...styles.container, marginTop: '80px' }}>
-      <h2 style={styles.title} className="text-center">Find Users Nearby</h2>
-      <Row className="justify-content-center my-4">
-        <Col md="6" className="text-center">
+    <Container className="py-5" style={styles.container}>
+      <div className="text-center mb-5">
+        <h2 style={styles.title}>Find Users Nearby</h2>
+        
+        <div className="d-flex align-items-center justify-content-center gap-3 mb-4">
+          <input
+            type="range"
+            min="100"
+            max="1000"
+            step="100"
+            value={searchDistance}
+            onChange={(e) => setSearchDistance(Number(e.target.value))}
+            className="form-range"
+            style={{ width: '200px' }}
+          />
+          <span className="text-white">
+            Search radius: {searchDistance}m
+          </span>
+          
           <Button
             onClick={getUserLocation}
             style={styles.button}
-            onMouseEnter={(e) => buttonHover(e, true)}
-            onMouseLeave={(e) => buttonHover(e, false)}
+            disabled={loading}
+            className="d-flex align-items-center gap-2"
           >
-            {loading ? <Spinner animation="border" size="sm" /> : 'Find Users'}
+            {loading ? (
+              <Loader2 className="animate-spin" size={20} />
+            ) : (
+              <>
+                <Search size={20} />
+                Find Users
+              </>
+            )}
           </Button>
-        </Col>
+        </div>
+
+        {error && (
+          <Alert variant="danger" style={styles.alert} className="d-flex align-items-center gap-2">
+            <AlertCircle size={20} />
+            {error}
+          </Alert>
+        )}
+        
+        {message && (
+          <Alert variant="info" style={styles.alert} className="d-flex align-items-center gap-2">
+            <Users size={20} />
+            {message}
+          </Alert>
+        )}
+      </div>
+
+      <Row>
+        {nearbyUsers.map((user, index) => (
+          <Col key={index} md={4} className="mb-4">
+            <Card 
+              style={styles.card}
+              className="h-100"
+              onClick={() => setSelectedUser(user)}
+            >
+              <Card.Body className="d-flex flex-column">
+                <div className="d-flex justify-content-between align-items-start">
+                  <div>
+                    <Card.Title className="text-white mb-2">{user.username}</Card.Title>
+                    <div className="d-flex align-items-center gap-2 text-gray-300 mb-2">
+                      <Mail size={16} />
+                      {user.email}
+                    </div>
+                  </div>
+                  <div className="d-flex align-items-center gap-1 text-success">
+                    <Navigation size={16} />
+                    <span className="small">
+                      {Math.round(
+                        calculateDistance(
+                          location.latitude,
+                          location.longitude,
+                          user.location.coordinates[1],
+                          user.location.coordinates[0]
+                        )
+                      )}m
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="d-flex gap-3 mt-3 text-muted small">
+                  <div className="d-flex align-items-center gap-1">
+                    <MapPin size={14} />
+                    {user.location.coordinates[1].toFixed(4)}°N
+                  </div>
+                  <div className="d-flex align-items-center gap-1">
+                    <MapPin size={14} />
+                    {user.location.coordinates[0].toFixed(4)}°E
+                  </div>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        ))}
       </Row>
 
-      {error && <AlertMessage message={error} variant="danger" />}
-      {message && <AlertMessage message={message} variant="info" />}
-
-      <UserCards nearbyUsers={nearbyUsers} />
-
       {location.latitude && location.longitude && (
-        <MapComponent
-          location={location}
-          googleMapsApiKey={googleMapsApiKey}
-          nearbyUsers={nearbyUsers}
-          selectedUser={selectedUser}
-          setSelectedUser={setSelectedUser}
-        />
+        <div className="mt-4 rounded overflow-hidden" style={{ height: '400px' }}>
+          <LoadScript googleMapsApiKey={googleMapsApiKey}>
+            <GoogleMap
+              center={{ lat: location.latitude, lng: location.longitude }}
+              zoom={16}
+              mapContainerStyle={{ height: '100%', width: '100%' }}
+              options={{
+                styles: [
+                  {
+                    featureType: 'all',
+                    elementType: 'geometry',
+                    stylers: [{ color: '#242f3e' }]
+                  },
+                  {
+                    featureType: 'all',
+                    elementType: 'labels.text.stroke',
+                    stylers: [{ color: '#242f3e' }]
+                  },
+                  {
+                    featureType: 'all',
+                    elementType: 'labels.text.fill',
+                    stylers: [{ color: '#746855' }]
+                  },
+                  {
+                    featureType: 'water',
+                    elementType: 'geometry',
+                    stylers: [{ color: '#17263c' }]
+                  }
+                ]
+              }}
+            >
+              <Marker 
+                position={{ lat: location.latitude, lng: location.longitude }}
+                icon={{
+                  path: "M-20,0a20,20 0 1,0 40,0a20,20 0 1,0 -40,0",
+                  fillColor: '#6366f1',
+                  fillOpacity: 0.6,
+                  strokeWeight: 0,
+                  scale: 0.5
+                }}
+              />
+              
+              {nearbyUsers.map((user, index) => (
+                <Marker
+                  key={index}
+                  position={{ lat: user.location.coordinates[1], lng: user.location.coordinates[0] }}
+                  icon={{
+                    path: "M-20,0a20,20 0 1,0 40,0a20,20 0 1,0 -40,0",
+                    fillColor: '#ec4899',
+                    fillOpacity: 0.6,
+                    strokeWeight: 0,
+                    scale: 0.3
+                  }}
+                  onClick={() => setSelectedUser(user)}
+                />
+              ))}
+              
+              {selectedUser && (
+                <InfoWindow
+                  position={{ 
+                    lat: selectedUser.location.coordinates[1], 
+                    lng: selectedUser.location.coordinates[0] 
+                  }}
+                  onCloseClick={() => setSelectedUser(null)}
+                >
+                  <div className="p-2">
+                    <h5 className="mb-2">{selectedUser.username}</h5>
+                    <div className="small text-muted">
+                      <p className="mb-1 d-flex align-items-center gap-1">
+                        <Mail size={14} />
+                        {selectedUser.email}
+                      </p>
+                      <p className="mb-0 d-flex align-items-center gap-1">
+                        <Navigation size={14} />
+                        {Math.round(
+                          calculateDistance(
+                            location.latitude,
+                            location.longitude,
+                            selectedUser.location.coordinates[1],
+                            selectedUser.location.coordinates[0]
+                          )
+                        )}m away
+                      </p>
+                    </div>
+                  </div>
+                </InfoWindow>
+              )}
+            </GoogleMap>
+          </LoadScript>
+        </div>
       )}
     </Container>
   );
 };
 
-const AlertMessage = ({ message, variant }) => (
-  <Row className="justify-content-center">
-    <Col md="6">
-      <Alert variant={variant} style={styles.alert}>
-        {message}
-      </Alert>
-    </Col>
-  </Row>
-);
+// Helper function to calculate distance between two points
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371e3; // Earth's radius in meters
+  const φ1 = lat1 * Math.PI/180;
+  const φ2 = lat2 * Math.PI/180;
+  const Δφ = (lat2-lat1) * Math.PI/180;
+  const Δλ = (lon2-lon1) * Math.PI/180;
 
-const UserCards = ({ nearbyUsers }) => (
-  <Row>
-    {nearbyUsers.map((user, index) => (
-      <Col key={index} md={4} className="my-3">
-        <Card
-          style={styles.card}
-          onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
-          onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-        >
-          <Card.Body style={styles.gradientBg}>
-            <Card.Title>{user.username}</Card.Title>
-            <Card.Subtitle className="mb-2">
-              <i className="fas fa-envelope"></i> {user.email}
-            </Card.Subtitle>
-            <Card.Text>
-              <i className="fas fa-map-marker-alt"></i> Latitude: {user.location.coordinates[1]} <br />
-              <i className="fas fa-map-marker-alt"></i> Longitude: {user.location.coordinates[0]}
-            </Card.Text>
-          </Card.Body>
-        </Card>
-      </Col>
-    ))}
-  </Row>
-);
+  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+          Math.cos(φ1) * Math.cos(φ2) *
+          Math.sin(Δλ/2) * Math.sin(Δλ/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
-const MapComponent = ({ location, googleMapsApiKey, nearbyUsers, selectedUser, setSelectedUser }) => (
-  <div style={{ marginTop: '30px' }}>
-    <LoadScript googleMapsApiKey={googleMapsApiKey}>
-      <GoogleMap
-        center={{ lat: location.latitude, lng: location.longitude }}
-        zoom={16}
-        mapContainerStyle={{ height: '400px', width: '100%' }}
-      >
-        <Marker position={{ lat: location.latitude, lng: location.longitude }} icon={{ url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' }} />
-        {nearbyUsers.map((user, index) => (
-          <Marker
-            key={index}
-            position={{ lat: user.location.coordinates[1], lng: user.location.coordinates[0] }}
-            icon={{ url: 'http://maps.google.com/mapfiles/ms/icons/pink-dot.png' }}
-            onClick={() => setSelectedUser(user)}
-          />
-        ))}
-        {selectedUser && (
-          <InfoWindow
-            position={{ lat: selectedUser.location.coordinates[1], lng: selectedUser.location.coordinates[0] }}
-            onCloseClick={() => setSelectedUser(null)}
-          >
-            <div>
-              <h3>{selectedUser.username}</h3>
-              <p>Latitude: {selectedUser.location.coordinates[1]}</p>
-              <p>Longitude: {selectedUser.location.coordinates[0]}</p>
-            </div>
-          </InfoWindow>
-        )}
-      </GoogleMap>
-    </LoadScript>
-  </div>
-);
+  return R * c; // Distance in meters
+};
 
 const styles = {
   container: {
     background: 'linear-gradient(135deg, #0a0a19 0%, #1a1a4a 50%, #0a0a19 100%)',
     borderRadius: '15px',
-    padding: '30px',
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
-    color: '#ffffff',
-    minHeight: '100vh', // Full height
+    minHeight: '100vh',
+    padding: '30px'
   },
   title: {
-    fontFamily: 'Montserrat, sans-serif',
-    fontSize: '2.5rem',
     color: '#FFD700',
-    textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)',
+    fontSize: '2.5rem',
+    fontWeight: 'bold',
     marginBottom: '30px',
+    textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
   },
   button: {
-    backgroundColor: '#ff6b6b',
+    background: 'linear-gradient(to right, #ff6b6b, #ff8e8e)',
     border: 'none',
-    fontSize: '1.2rem',
+    borderRadius: '25px',
     padding: '10px 20px',
-    transition: 'all 0.3s ease',
-    borderRadius: '20px',
-    color: '#fff',
+    transition: 'transform 0.2s',
+    boxShadow: '0 4px 15px rgba(255,107,107,0.2)'
   },
   alert: {
     borderRadius: '10px',
-    padding: '15px',
+    marginBottom: '20px'
   },
   card: {
-    backgroundColor: '#2f3542',
-    border: 'none',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+    background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255,255,255,0.1)',
     borderRadius: '15px',
-    transition: 'transform 0.3s ease',
-    color: '#ffffff',
-  },
-  gradientBg: {
-    background: 'linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%)',
-    borderRadius: '15px',
-  },
+    transition: 'transform 0.2s, box-shadow 0.2s',
+    cursor: 'pointer',
+    '&:hover': {
+      transform: 'translateY(-5px)',
+      boxShadow: '0 10px 20px rgba(0,0,0,0.2)'
+    }
+  }
 };
 
 export default FindUsersNearby;
