@@ -2,32 +2,97 @@ import React, { useState, useEffect } from "react";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import getUserInfo from "../../utilities/decodeJwt";
-
-// Link to service
-// http://localhost:8096/privateUserProfile
-
-// A change for future, we can add a radius option, which will allow the user to decide how far the users he wants.
 
 const PrivateUserProfile = () => {
   const [show, setShow] = useState(false);
   const [user, setUser] = useState({});
+  const [imageFile, setImageFile] = useState(null);  // For image upload
+  const [profileImage, setProfileImage] = useState(""); // State to store profile image URL
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const navigate = useNavigate();
+
   document.body.style.backgroundColor = "#0c0c1f";
 
   // Handle logout button
   const handleLogout = () => {
     localStorage.clear();
-    // Reload current page and navigate to privateUserProfile
     navigate('/', { replace: true });
     window.location.reload();
   };
 
-  useEffect(() => {
-    setUser(getUserInfo());
-  }, []);
+  // Fetch user data on component mount
+useEffect(() => {
+  const userInfo = getUserInfo();
+  setUser(userInfo);
+
+  // Fetch user profile image from the backend (example API endpoint)
+  axios.get(`http://localhost:8081/user/${userInfo.id}/profile-image`)
+    .then((res) => {
+      // Use fetched profile image if available, otherwise use default
+      const fetchedProfileImage = res.data.profileImage ? res.data.profileImage : "default-profile-image-url";
+      setProfileImage(fetchedProfileImage);  // Set profile image in state
+    })
+    .catch((error) => {
+      console.error("Error fetching profile image:", error);
+      // Use default image in case of error
+      setProfileImage("default-profile-image-url");
+    });
+}, []);
+
+
+  // Handle image file selection
+  const handleImageChange = (e) => {
+    setImageFile(e.target.files[0]);
+  };
+
+  // Handle profile image upload
+  const uploadProfileImage = async () => {
+    if (!imageFile) {
+      alert('Please select an image to upload');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('profileImage', imageFile);
+    formData.append('name', user.username);
+
+    try {
+      // Upload image to the backend
+      const response = await axios.post('http://localhost:8081/image/profileImageUpload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      // After upload, update the profile image state with the new image URL
+      setProfileImage(response.data.imageUri);  // Update the profile image URL with the backend response
+
+      alert('Profile image uploaded successfully!');
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
+      alert('Error uploading profile image');
+    }
+  };
+
+  // Handle profile image removal
+  const removeProfileImage = async () => {
+    try {
+      const response = await axios.post('http://localhost:8081/image/profileImageRemove', {
+        name: user.username,
+      });
+
+      // After removal, reset to default or empty
+      setProfileImage("default-profile-image-url");  // Reset to a default image
+
+      alert('Profile image removed successfully!');
+    } catch (error) {
+      console.error('Error removing profile image:', error);
+      alert('Error removing profile image');
+    }
+  };
 
   if (!user || !user.id) {
     return (
@@ -36,15 +101,16 @@ const PrivateUserProfile = () => {
       </div>
     );
   }
-  
+
   const { id, email, username } = user;
 
   return (
     <div style={styles.profileContainer}>
       <div style={styles.profileCard}>
         <div style={styles.profileHeader}>
+          {/* Display Profile Image */}
           <img
-            src={user.profilePic || "defaultProfilePic.png"}
+            src={profileImage}  // Use the profileImage state directly here
             alt="Profile"
             style={styles.profilePic}
           />
@@ -53,6 +119,17 @@ const PrivateUserProfile = () => {
           <Button variant="link" onClick={() => alert("Edit profile coming soon!")}>
             Edit Profile
           </Button>
+
+          {/* Profile Image Upload and Remove */}
+          <div style={{ marginTop: "20px" }}>
+            <input type="file" onChange={handleImageChange} />
+            <Button variant="outline-light" onClick={uploadProfileImage} style={{ marginTop: "10px", marginRight: "10px" }}>
+              Upload Profile Image
+            </Button>
+            <Button variant="outline-danger" onClick={removeProfileImage} style={{ marginTop: "10px" }}>
+              Remove Profile Image
+            </Button>
+          </div>
         </div>
 
         <div style={styles.profileInfo}>
@@ -111,7 +188,6 @@ const PrivateUserProfile = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-
     </div>
   );
 };
@@ -128,11 +204,11 @@ const styles = {
   profileCard: {
     width: "100%",
     maxWidth: "500px",
-    padding: "30px",
-    background: "linear-gradient(135deg, #2b2d42, #3d405b)",
+        padding: "30px",
+background: "linear-gradient(135deg, #2b2d42, #3d405b)",
     borderRadius: "15px",
     boxShadow: "0px 8px 20px rgba(0, 0, 0, 0.5)",
-    textAlign: "center",
+textAlign: "center",
     color: "white",
     transform: "scale(1)",
     transition: "transform 0.3s ease",
@@ -141,7 +217,7 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    marginBottom: "20px",
+marginBottom: "20px",
   },
   profilePic: {
     width: "120px",
@@ -154,9 +230,9 @@ const styles = {
   username: {
     fontSize: "1.8rem",
     fontWeight: "bold",
-  },
+      },
   handle: {
-    color: "#b8b8d1",
+color: "#b8b8d1",
     fontSize: "0.95rem",
   },
   profileInfo: {
@@ -174,9 +250,9 @@ const styles = {
   },
   profileStats: {
     marginTop: "30px",
-  },
+      },
   statItem: {
-    display: "flex",
+display: "flex",
     justifyContent: "space-between",
     padding: "8px 15px",
     borderRadius: "8px",
@@ -188,14 +264,14 @@ const styles = {
     color: "#61dafb",
   },
   statValue: {
-    fontWeight: "600",
+fontWeight: "600",
     color: "#fff",
   },
   profileActions: {
-    display: "flex",
+display: "flex",
     justifyContent: "space-around",
     marginTop: "20px",
-  },
+      },
   privacyButton: {
     border: "1px solid #61dafb",
     color: "#61dafb",
@@ -204,9 +280,9 @@ const styles = {
     transition: "background-color 0.3s ease",
   },
   logoutButton: {
-    border: "1px solid #ff4f4f",
+        border: "1px solid #ff4f4f",
     color: "#ff4f4f",
-    borderRadius: "8px",
+borderRadius: "8px",
     padding: "10px 20px",
     transition: "background-color 0.3s ease",
   },

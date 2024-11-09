@@ -36,7 +36,7 @@ router.post("/profileImageUpload", upload.single("profileImage"), async (req, re
     }
 
     const newKey = `profilepictures/${Date.now()}_${file.originalname}`;
-    const newImageUri = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${newKey}`;
+    const newImageUri = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${newKey}`;
 
     const previousImageUri = user.profileImage;
     user.profileImage = newImageUri;
@@ -71,7 +71,7 @@ router.post("/profileImageUpload", upload.single("profileImage"), async (req, re
 
     res.json({
       message: "Profile image uploaded successfully",
-      imageUri: newImageUri,
+      imageUri: newImageUri, // Return the new image URL
     });
   } catch (error) {
     res.status(500).json({ message: "Failed to upload profile image", error });
