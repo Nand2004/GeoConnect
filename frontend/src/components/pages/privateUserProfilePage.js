@@ -4,13 +4,13 @@ import Modal from "react-bootstrap/Modal";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import getUserInfo from "../../utilities/decodeJwt";
-import { 
-  Camera, 
-  Mail, 
-  User, 
-  Shield, 
-  LogOut, 
-  Settings, 
+import {
+  Camera,
+  Mail,
+  User,
+  Shield,
+  LogOut,
+  Settings,
   Lock,
   Crown,
   BadgeCheck,
@@ -112,107 +112,128 @@ const PrivateUserProfile = () => {
       <div style={styles.profileCard}>
         <div style={styles.topBar}>
           <div style={styles.badge}>
-            <Crown size={14} style={{ marginRight: '5px' }}/>
+            <Crown size={14} style={{ marginRight: '5px' }} />
             Premium
           </div>
         </div>
-        
+
         <div style={styles.profileContent}>
           <div style={styles.profileHeader}>
             <div style={styles.imageWrapper}>
               <div style={styles.imageContainer}>
                 <img src={profileImage} alt="Profile" style={styles.profilePic} />
                 <div style={styles.imageOverlay}>
-                  <input type="file" onChange={handleImageChange} style={styles.fileInput} id="fileInput" />
-                  <label htmlFor="fileInput" style={styles.uploadLabel}>
+                  <input
+                    type="file"
+                    onChange={handleImageChange}
+                    style={styles.fileInput} // Hidden input
+                    id="fileInput"
+                    accept="image/*"
+                  />
+                  <Button
+                    variant="outline-light"
+                    onClick={uploadProfileImage}
+                    style={styles.uploadButton}
+                  >
+                    Upload Profile Image
+                  </Button>
+                  <label
+                    htmlFor="fileInput"
+                    style={styles.uploadLabel}
+                    title="Click to upload image"
+                  >
                     <Camera size={24} color="#fff" />
                   </label>
                 </div>
               </div>
               <div style={styles.imageGlow}></div>
             </div>
-
-            <div style={styles.userInfo}>
-              <h2 style={styles.username}>{username}</h2>
-              <span style={styles.handle}>@{username}</span>
-              <div style={styles.verifiedBadge}>
-                <BadgeCheck size={16} style={{ marginRight: '5px' }}/>
-                Verified Profile
-              </div>
-            </div>
           </div>
+        </div>
 
-          <div style={styles.quickStats}>
-            {stats.map(({ icon: Icon, label, value }) => (
-              <div key={label} style={styles.quickStat}>
-                <Icon size={20} style={styles.statIcon} />
-                <span style={styles.quickStatNumber}>{value}</span>
-                <span style={styles.quickStatLabel}>{label}</span>
-              </div>
-            ))}
+
+
+        <div style={styles.userInfo}>
+          <h2 style={styles.username}>{username}</h2>
+          <span style={styles.handle}>@{username}</span>
+          <div style={styles.verifiedBadge}>
+            <BadgeCheck size={16} style={{ marginRight: '5px' }} />
+            Verified Profile
           </div>
+        </div>
+      <div>
 
-          <div style={styles.mainContent}>
-            <div style={styles.infoSection}>
-              <h3 style={styles.sectionTitle}>Profile Information</h3>
-              <div style={styles.infoGrid}>
-                <div style={styles.infoCard}>
-                  <User size={24} style={styles.cardIcon} />
-                  <div style={styles.cardContent}>
-                    <span style={styles.infoLabel}>User ID</span>
-                    <span style={styles.infoValue}>{id}</span>
-                  </div>
-                  <ChevronRight size={20} style={styles.chevron} />
-                </div>
-                <div style={styles.infoCard}>
-                  <Mail size={24} style={styles.cardIcon} />
-                  <div style={styles.cardContent}>
-                    <span style={styles.infoLabel}>Email</span>
-                    <span style={styles.infoValue}>{email}</span>
-                  </div>
-                  <ChevronRight size={20} style={styles.chevron} />
-                </div>
+      <div style={styles.quickStats}>
+        {stats.map(({ icon: Icon, label, value }) => (
+          <div key={label} style={styles.quickStat}>
+            <Icon size={20} style={styles.statIcon} />
+            <span style={styles.quickStatNumber}>{value}</span>
+            <span style={styles.quickStatLabel}>{label}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={styles.mainContent}>
+        <div style={styles.infoSection}>
+          <h3 style={styles.sectionTitle}>Profile Information</h3>
+          <div style={styles.infoGrid}>
+            <div style={styles.infoCard}>
+              <User size={24} style={styles.cardIcon} />
+              <div style={styles.cardContent}>
+                <span style={styles.infoLabel}>User ID</span>
+                <span style={styles.infoValue}>{id}</span>
               </div>
+              <ChevronRight size={20} style={styles.chevron} />
             </div>
-
-            <div style={styles.actionsGrid}>
-              <button style={styles.actionButton} onClick={() => alert("Coming soon!")}>
-                <Lock size={20} />
-                Privacy Settings
-              </button>
-              <button style={styles.actionButton} onClick={() => alert("Coming soon!")}>
-                <Settings size={20} />
-                Edit Profile
-              </button>
-              <button style={{...styles.actionButton, ...styles.logoutButton}} onClick={handleShow}>
-                <LogOut size={20} />
-                Log Out
-              </button>
+            <div style={styles.infoCard}>
+              <Mail size={24} style={styles.cardIcon} />
+              <div style={styles.cardContent}>
+                <span style={styles.infoLabel}>Email</span>
+                <span style={styles.infoValue}>{email}</span>
+              </div>
+              <ChevronRight size={20} style={styles.chevron} />
             </div>
           </div>
         </div>
-      </div>
 
-      <Modal show={show} onHide={handleClose} backdrop="static" keyboard={false} centered>
-        <Modal.Header closeButton style={styles.modalHeader}>
-          <Modal.Title>Ready to leave?</Modal.Title>
-        </Modal.Header>
-        <Modal.Body style={styles.modalBody}>
-          <div style={styles.modalContent}>
-            <LogOut size={48} style={styles.modalIcon}/>
-            <p>Are you sure you want to log out?</p>
-          </div>
-        </Modal.Body>
-        <Modal.Footer style={styles.modalFooter}>
-          <Button variant="secondary" onClick={handleClose} style={styles.modalButton}>
-            Stay
-          </Button>
-          <Button variant="primary" onClick={handleLogout} style={styles.modalLogoutButton}>
+        <div style={styles.actionsGrid}>
+          <button style={styles.actionButton} onClick={() => alert("Coming soon!")}>
+            <Lock size={20} />
+            Privacy Settings
+          </button>
+          <button style={styles.actionButton} onClick={() => alert("Coming soon!")}>
+            <Settings size={20} />
+            Edit Profile
+          </button>
+          <button style={{ ...styles.actionButton, ...styles.logoutButton }} onClick={handleShow}>
+            <LogOut size={20} />
             Log Out
-          </Button>
-        </Modal.Footer>
-      </Modal>
+          </button>
+        </div>
+      </div>
     </div>
+      </div >
+
+  <Modal show={show} onHide={handleClose} backdrop="static" keyboard={false} centered>
+    <Modal.Header closeButton style={styles.modalHeader}>
+      <Modal.Title>Ready to leave?</Modal.Title>
+    </Modal.Header>
+    <Modal.Body style={styles.modalBody}>
+      <div style={styles.modalContent}>
+        <LogOut size={48} style={styles.modalIcon} />
+        <p>Are you sure you want to log out?</p>
+      </div>
+    </Modal.Body>
+    <Modal.Footer style={styles.modalFooter}>
+      <Button variant="secondary" onClick={handleClose} style={styles.modalButton}>
+        Stay
+      </Button>
+      <Button variant="primary" onClick={handleLogout} style={styles.modalLogoutButton}>
+        Log Out
+      </Button>
+    </Modal.Footer>
+  </Modal>
+    </div >
   );
 };
 
@@ -457,7 +478,7 @@ const styles = {
     height: "200%",
     background: "radial-gradient(circle, rgba(97, 218, 251, 0.1) 0%, transparent 70%)",
     animation: "rotate 10s linear infinite",
-    
+
   },
   statIcon: {
     color: '#61dafb',
@@ -521,6 +542,7 @@ const styles = {
       transform: "translateY(-5px)",
       background: "rgba(255, 255, 255, 0.05)",
     },
+    
   },
 };
 
