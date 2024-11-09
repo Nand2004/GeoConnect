@@ -4,50 +4,56 @@ import Modal from "react-bootstrap/Modal";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import getUserInfo from "../../utilities/decodeJwt";
+import { 
+  Camera, 
+  Mail, 
+  User, 
+  Shield, 
+  LogOut, 
+  Settings, 
+  Lock,
+  Crown,
+  BadgeCheck,
+  Users,
+  MessageSquare,
+  MapPin,
+  ChevronRight
+} from "lucide-react";
 
 const PrivateUserProfile = () => {
   const [show, setShow] = useState(false);
   const [user, setUser] = useState({});
-  const [imageFile, setImageFile] = useState(null);  // For image upload
-  const [profileImage, setProfileImage] = useState(""); // State to store profile image URL
+  const [imageFile, setImageFile] = useState(null);
+  const [profileImage, setProfileImage] = useState("");
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const navigate = useNavigate();
 
   document.body.style.backgroundColor = "#0c0c1f";
 
-  // Handle logout button
   const handleLogout = () => {
     localStorage.clear();
     navigate('/', { replace: true });
     window.location.reload();
   };
 
-// Fetch user data on component mount
-useEffect(() => {
-  const userInfo = getUserInfo();
-  setUser(userInfo);
+  useEffect(() => {
+    const userInfo = getUserInfo();
+    setUser(userInfo);
 
-  axios.get(`http://localhost:8081/user/getUserProfileImage/${userInfo.id}`)
-  .then((res) => {
-    const fetchedProfileImage = res.data.profileImage || "default-profile-image-url";
-    setProfileImage(fetchedProfileImage);
-  })
-  .catch((error) => {
-    console.error("Error fetching profile image:", error);
-    setProfileImage("default-profile-image-url");
-  });
+    axios.get(`http://localhost:8081/user/getUserProfileImage/${userInfo.id}`)
+      .then((res) => {
+        const fetchedProfileImage = res.data.profileImage || "default-profile-image-url";
+        setProfileImage(fetchedProfileImage);
+      })
+      .catch((error) => {
+        console.error("Error fetching profile image:", error);
+        setProfileImage("default-profile-image-url");
+      });
+  }, []);
 
-}, []);
+  const handleImageChange = (e) => setImageFile(e.target.files[0]);
 
-
-
-  // Handle image file selection
-  const handleImageChange = (e) => {
-    setImageFile(e.target.files[0]);
-  };
-
-  // Handle profile image upload
   const uploadProfileImage = async () => {
     if (!imageFile) {
       alert('Please select an image to upload');
@@ -59,16 +65,10 @@ useEffect(() => {
     formData.append('name', user.username);
 
     try {
-      // Upload image to the backend
       const response = await axios.post('http://localhost:8081/image/profileImageUpload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-
-      // After upload, update the profile image state with the new image URL
-      setProfileImage(response.data.imageUri);  // Update the profile image URL with the backend response
-
+      setProfileImage(response.data.imageUri);
       alert('Profile image uploaded successfully!');
     } catch (error) {
       console.error('Error uploading profile image:', error);
@@ -76,114 +76,139 @@ useEffect(() => {
     }
   };
 
-  // Handle profile image removal
   const removeProfileImage = async () => {
     try {
-      const response = await axios.post('http://localhost:8081/image/profileImageRemove', {
+      await axios.post('http://localhost:8081/image/profileImageRemove', {
         name: user.username,
       });
-
-      // After removal, reset to default or empty
-      setProfileImage("default-profile-image-url");  // Reset to a default image
-
+      setProfileImage("default-profile-image-url");
       alert('Profile image removed successfully!');
     } catch (error) {
       console.error('Error removing profile image:', error);
       alert('Error removing profile image');
     }
   };
-
   if (!user || !user.id) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'white' }}>
-        <h4>Log in to view this page.</h4>
+      <div style={styles.loginPrompt}>
+        <div style={styles.loginBox}>
+          <h4>Log in to view this page</h4>
+          <div style={styles.loginGlow}></div>
+        </div>
       </div>
     );
   }
 
   const { id, email, username } = user;
 
+  const stats = [
+    { icon: Users, label: 'Connections', value: 5 },
+    { icon: MessageSquare, label: 'Chats', value: 12 },
+    { icon: MapPin, label: 'Found Nearby', value: 3 }
+  ];
+
   return (
     <div style={styles.profileContainer}>
       <div style={styles.profileCard}>
-        <div style={styles.profileHeader}>
-          {/* Display Profile Image */}
-          <img
-            src={profileImage}  // Use the profileImage state directly here
-            alt="Profile"
-            style={styles.profilePic}
-          />
-          <h2 style={styles.username}>{username}</h2>
-          <span style={styles.handle}>@{username}</span>
-          <Button variant="link" onClick={() => alert("Edit profile coming soon!")}>
-            Edit Profile
-          </Button>
-
-          {/* Profile Image Upload and Remove */}
-          <div style={{ marginTop: "20px" }}>
-            <input type="file" onChange={handleImageChange} />
-            <Button variant="outline-light" onClick={uploadProfileImage} style={{ marginTop: "10px", marginRight: "10px" }}>
-              Upload Profile Image
-            </Button>
-            <Button variant="outline-danger" onClick={removeProfileImage} style={{ marginTop: "10px" }}>
-              Remove Profile Image
-            </Button>
+        <div style={styles.topBar}>
+          <div style={styles.badge}>
+            <Crown size={14} style={{ marginRight: '5px' }}/>
+            Premium
           </div>
         </div>
+        
+        <div style={styles.profileContent}>
+          <div style={styles.profileHeader}>
+            <div style={styles.imageWrapper}>
+              <div style={styles.imageContainer}>
+                <img src={profileImage} alt="Profile" style={styles.profilePic} />
+                <div style={styles.imageOverlay}>
+                  <input type="file" onChange={handleImageChange} style={styles.fileInput} id="fileInput" />
+                  <label htmlFor="fileInput" style={styles.uploadLabel}>
+                    <Camera size={24} color="#fff" />
+                  </label>
+                </div>
+              </div>
+              <div style={styles.imageGlow}></div>
+            </div>
 
-        <div style={styles.profileInfo}>
-          <div style={styles.infoItem}>
-            <span style={styles.infoLabel}>User ID:</span>
-            <span>{id}</span>
+            <div style={styles.userInfo}>
+              <h2 style={styles.username}>{username}</h2>
+              <span style={styles.handle}>@{username}</span>
+              <div style={styles.verifiedBadge}>
+                <BadgeCheck size={16} style={{ marginRight: '5px' }}/>
+                Verified Profile
+              </div>
+            </div>
           </div>
-          <div style={styles.infoItem}>
-            <span style={styles.infoLabel}>Email:</span>
-            <span>{email}</span>
-          </div>
-        </div>
 
-        <div style={styles.profileStats}>
-          <h3>Activity Summary</h3>
-          <div style={styles.statItem}>
-            <span style={styles.statLabel}>Connections</span>
-            <span style={styles.statValue}>5</span>
+          <div style={styles.quickStats}>
+            {stats.map(({ icon: Icon, label, value }) => (
+              <div key={label} style={styles.quickStat}>
+                <Icon size={20} style={styles.statIcon} />
+                <span style={styles.quickStatNumber}>{value}</span>
+                <span style={styles.quickStatLabel}>{label}</span>
+              </div>
+            ))}
           </div>
-          <div style={styles.statItem}>
-            <span style={styles.statLabel}>Chats Opened</span>
-            <span style={styles.statValue}>12</span>
-          </div>
-          <div style={styles.statItem}>
-            <span style={styles.statLabel}>Nearby People Found</span>
-            <span style={styles.statValue}>3</span>
-          </div>
-        </div>
 
-        <div style={styles.profileActions}>
-          <Button variant="outline-light" style={styles.privacyButton} onClick={() => alert("Privacy settings coming soon!")}>
-            Privacy Settings
-          </Button>
-          <Button variant="outline-danger" style={styles.logoutButton} onClick={handleShow}>
-            Log Out
-          </Button>
+          <div style={styles.mainContent}>
+            <div style={styles.infoSection}>
+              <h3 style={styles.sectionTitle}>Profile Information</h3>
+              <div style={styles.infoGrid}>
+                <div style={styles.infoCard}>
+                  <User size={24} style={styles.cardIcon} />
+                  <div style={styles.cardContent}>
+                    <span style={styles.infoLabel}>User ID</span>
+                    <span style={styles.infoValue}>{id}</span>
+                  </div>
+                  <ChevronRight size={20} style={styles.chevron} />
+                </div>
+                <div style={styles.infoCard}>
+                  <Mail size={24} style={styles.cardIcon} />
+                  <div style={styles.cardContent}>
+                    <span style={styles.infoLabel}>Email</span>
+                    <span style={styles.infoValue}>{email}</span>
+                  </div>
+                  <ChevronRight size={20} style={styles.chevron} />
+                </div>
+              </div>
+            </div>
+
+            <div style={styles.actionsGrid}>
+              <button style={styles.actionButton} onClick={() => alert("Coming soon!")}>
+                <Lock size={20} />
+                Privacy Settings
+              </button>
+              <button style={styles.actionButton} onClick={() => alert("Coming soon!")}>
+                <Settings size={20} />
+                Edit Profile
+              </button>
+              <button style={{...styles.actionButton, ...styles.logoutButton}} onClick={handleShow}>
+                <LogOut size={20} />
+                Log Out
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <Modal show={show} onHide={handleClose} backdrop="static" keyboard={false}>
-        <Modal.Header
-          closeButton
-          style={{ background: "linear-gradient(135deg, #0c0c1f, #1a1a4a)", borderBottom: "1px solid rgba(255, 255, 255, 0.1)", color: "#fff" }}
-        >
-          <Modal.Title>Log Out</Modal.Title>
+      <Modal show={show} onHide={handleClose} backdrop="static" keyboard={false} centered>
+        <Modal.Header closeButton style={styles.modalHeader}>
+          <Modal.Title>Ready to leave?</Modal.Title>
         </Modal.Header>
-        <Modal.Body style={{ background: "rgba(26, 26, 46, 0.8)", color: "#d3d3d3" }}>
-          Are you sure you want to log out?
+        <Modal.Body style={styles.modalBody}>
+          <div style={styles.modalContent}>
+            <LogOut size={48} style={styles.modalIcon}/>
+            <p>Are you sure you want to log out?</p>
+          </div>
         </Modal.Body>
-        <Modal.Footer style={{ background: "rgba(26, 26, 46, 0.8)", borderTop: "1px solid rgba(255, 255, 255, 0.1)" }}>
-          <Button variant="secondary" onClick={handleClose} style={{ background: "rgba(255, 255, 255, 0.1)", border: "1px solid rgba(255, 255, 255, 0.2)", color: "#fff" }}>
-            Close
+        <Modal.Footer style={styles.modalFooter}>
+          <Button variant="secondary" onClick={handleClose} style={styles.modalButton}>
+            Stay
           </Button>
-          <Button variant="primary" onClick={handleLogout} style={{ background: "linear-gradient(135deg, #FFD700, #cc5c99)", border: "none", color: "#fff" }}>
-            Yes
+          <Button variant="primary" onClick={handleLogout} style={styles.modalLogoutButton}>
+            Log Out
           </Button>
         </Modal.Footer>
       </Modal>
@@ -193,97 +218,309 @@ useEffect(() => {
 
 const styles = {
   profileContainer: {
+    minHeight: "100vh",
+    padding: "20px",
+    background: "linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 100%)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    minHeight: "100vh",
-    padding: "20px",
-    backgroundColor: "#0c0c1f",
   },
   profileCard: {
     width: "100%",
-    maxWidth: "500px",
-        padding: "30px",
-background: "linear-gradient(135deg, #2b2d42, #3d405b)",
-    borderRadius: "15px",
-    boxShadow: "0px 8px 20px rgba(0, 0, 0, 0.5)",
-textAlign: "center",
-    color: "white",
-    transform: "scale(1)",
-    transition: "transform 0.3s ease",
+    maxWidth: "800px",
+    background: "rgba(255, 255, 255, 0.03)",
+    borderRadius: "24px",
+    overflow: "hidden",
+    position: "relative",
+    backdropFilter: "blur(20px)",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
   },
-  profileHeader: {
+  topBar: {
+    padding: "15px 25px",
+    background: "linear-gradient(to right, rgba(97, 218, 251, 0.1), rgba(204, 92, 153, 0.1))",
+    borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+  },
+  badge: {
+    background: "linear-gradient(135deg, #61dafb, #cc5c99)",
+    padding: "5px 15px",
+    borderRadius: "20px",
+    color: "white",
+    fontSize: "0.8rem",
+    display: "inline-block",
+    fontWeight: "500",
+  },
+  profileContent: {
+    padding: "30px",
+  },
+  imageWrapper: {
+    position: "relative",
+    marginBottom: "30px",
+  },
+  imageContainer: {
+    width: "150px",
+    height: "150px",
+    position: "relative",
+    zIndex: "1",
+  },
+  profilePic: {
+    width: "100%",
+    height: "100%",
+    borderRadius: "50%",
+    objectFit: "cover",
+    border: "3px solid rgba(97, 218, 251, 0.5)",
+  },
+  imageGlow: {
+    position: "absolute",
+    top: "0",
+    left: "0",
+    width: "150px",
+    height: "150px",
+    borderRadius: "50%",
+    background: "linear-gradient(135deg, #61dafb, #cc5c99)",
+    filter: "blur(20px)",
+    opacity: "0.15",
+    zIndex: "0",
+  },
+  userInfo: {
+    textAlign: "center",
+    marginBottom: "30px",
+  },
+  username: {
+    fontSize: "2.5rem",
+    fontWeight: "bold",
+    margin: "10px 0",
+    background: "linear-gradient(135deg, #61dafb, #cc5c99)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+  },
+  handle: {
+    color: "#8888a0",
+    fontSize: "1.1rem",
+    display: "block",
+    marginBottom: "10px",
+  },
+  verifiedBadge: {
+    background: "rgba(97, 218, 251, 0.1)",
+    color: "#61dafb",
+    padding: "5px 15px",
+    borderRadius: "15px",
+    fontSize: "0.9rem",
+    display: "inline-block",
+  },
+  quickStats: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: "20px",
+    margin: "30px 0",
+  },
+  quickStat: {
+    background: "rgba(255, 255, 255, 0.03)",
+    padding: "20px",
+    borderRadius: "20px",
+    textAlign: "center",
+    transition: "transform 0.3s",
+    cursor: "pointer",
+    '&:hover': {
+      transform: "translateY(-5px)",
+    },
+  },
+  quickStatNumber: {
+    fontSize: "2rem",
+    fontWeight: "bold",
+    color: "#61dafb",
+    display: "block",
+  },
+  quickStatLabel: {
+    color: "#8888a0",
+    fontSize: "0.9rem",
+    marginTop: "5px",
+    display: "block",
+  },
+  infoSection: {
+    marginBottom: "30px",
+  },
+  sectionTitle: {
+    color: "white",
+    fontSize: "1.2rem",
+    marginBottom: "20px",
+  },
+  infoGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: "20px",
+  },
+  infoCard: {
+    background: "rgba(255, 255, 255, 0.03)",
+    padding: "20px",
+    borderRadius: "20px",
+    display: "grid",
+    gridTemplateColumns: "auto 1fr",
+    gap: "10px",
+    alignItems: "center",
+  },
+  infoIcon: {
+    fontSize: "1.5rem",
+    gridRow: "span 2",
+  },
+  infoLabel: {
+    color: "#8888a0",
+    fontSize: "0.9rem",
+  },
+  infoValue: {
+    color: "white",
+    fontSize: "1rem",
+  },
+  actionsGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: "15px",
+  },
+  actionButton: {
+    background: "rgba(97, 218, 251, 0.1)",
+    border: "none",
+    padding: "15px",
+    borderRadius: "15px",
+    color: "white",
+    cursor: "pointer",
+    transition: "all 0.3s",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "10px",
+    '&:hover': {
+      background: "rgba(97, 218, 251, 0.2)",
+    },
+  },
+  logoutButton: {
+    background: "rgba(255, 75, 75, 0.1)",
+    '&:hover': {
+      background: "rgba(255, 75, 75, 0.2)",
+    },
+  },
+  actionIcon: {
+    fontSize: "1.2rem",
+  },
+  modalHeader: {
+    background: "linear-gradient(135deg, #1a1a3a, #2b2d42)",
+    borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+    color: "white",
+  },
+  modalBody: {
+    background: "#1a1a3a",
+    color: "white",
+  },
+  modalContent: {
+    textAlign: "center",
+    padding: "20px",
+  },
+  modalIcon: {
+    fontSize: "3rem",
+    marginBottom: "15px",
+    display: "block",
+  },
+  modalFooter: {
+    background: "#1a1a3a",
+    borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+  },
+  modalButton: {
+    background: "rgba(255, 255, 255, 0.1)",
+    border: "none",
+    padding: "8px 20px",
+    borderRadius: "10px",
+  },
+  modalLogoutButton: {
+    background: "linear-gradient(135deg, #61dafb, #cc5c99)",
+    border: "none",
+    padding: "8px 20px",
+    borderRadius: "10px",
+  },
+  loginPrompt: {
+    height: "100vh",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    background: "linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 100%)",
+  },
+  loginBox: {
+    background: "rgba(255, 255, 255, 0.03)",
+    padding: "30px 50px",
+    borderRadius: "20px",
+    color: "white",
+    position: "relative",
+    overflow: "hidden",
+  },
+  loginGlow: {
+    position: "absolute",
+    top: "-50%",
+    left: "-50%",
+    width: "200%",
+    height: "200%",
+    background: "radial-gradient(circle, rgba(97, 218, 251, 0.1) 0%, transparent 70%)",
+    animation: "rotate 10s linear infinite",
+    
+  },
+  statIcon: {
+    color: '#61dafb',
+    marginBottom: '10px',
+  },
+  cardIcon: {
+    color: '#61dafb',
+  },
+  chevron: {
+    color: '#8888a0',
+    opacity: 0.5,
+  },
+  cardContent: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  infoCard: {
+    background: "rgba(255, 255, 255, 0.03)",
+    padding: "20px",
+    borderRadius: "20px",
+    display: "flex",
+    alignItems: "center",
+    gap: "15px",
+    transition: "transform 0.2s",
+    cursor: "pointer",
+    '&:hover': {
+      transform: "translateY(-2px)",
+      background: "rgba(255, 255, 255, 0.05)",
+    },
+  },
+  uploadLabel: {
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "40px",
+    height: "40px",
+    borderRadius: "50%",
+    background: "rgba(97, 218, 251, 0.3)",
+    transition: "background 0.3s",
+    '&:hover': {
+      background: "rgba(97, 218, 251, 0.5)",
+    },
+  },
+  modalIcon: {
+    color: '#61dafb',
+    marginBottom: '15px',
+  },
+  quickStat: {
+    background: "rgba(255, 255, 255, 0.03)",
+    padding: "20px",
+    borderRadius: "20px",
+    textAlign: "center",
+    transition: "all 0.3s",
+    cursor: "pointer",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-marginBottom: "20px",
-  },
-  profilePic: {
-    width: "120px",
-    height: "120px",
-    borderRadius: "50%",
-    marginBottom: "10px",
-    border: "3px solid #61dafb",
-    transition: "transform 0.3s ease",
-  },
-  username: {
-    fontSize: "1.8rem",
-    fontWeight: "bold",
-      },
-  handle: {
-color: "#b8b8d1",
-    fontSize: "0.95rem",
-  },
-  profileInfo: {
-    marginTop: "20px",
-    padding: "15px",
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
-    borderRadius: "10px",
-  },
-  infoItem: {
-    margin: "10px 0",
-  },
-  infoLabel: {
-    fontWeight: "600",
-    color: "#a1a1c1",
-  },
-  profileStats: {
-    marginTop: "30px",
-      },
-  statItem: {
-display: "flex",
-    justifyContent: "space-between",
-    padding: "8px 15px",
-    borderRadius: "8px",
-    backgroundColor: "#282c34",
-    marginBottom: "10px",
-  },
-  statLabel: {
-    fontWeight: "600",
-    color: "#61dafb",
-  },
-  statValue: {
-fontWeight: "600",
-    color: "#fff",
-  },
-  profileActions: {
-display: "flex",
-    justifyContent: "space-around",
-    marginTop: "20px",
-      },
-  privacyButton: {
-    border: "1px solid #61dafb",
-    color: "#61dafb",
-    borderRadius: "8px",
-    padding: "10px 20px",
-    transition: "background-color 0.3s ease",
-  },
-  logoutButton: {
-        border: "1px solid #ff4f4f",
-    color: "#ff4f4f",
-borderRadius: "8px",
-    padding: "10px 20px",
-    transition: "background-color 0.3s ease",
+    '&:hover': {
+      transform: "translateY(-5px)",
+      background: "rgba(255, 255, 255, 0.05)",
+    },
   },
 };
 

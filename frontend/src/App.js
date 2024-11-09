@@ -8,7 +8,6 @@ import LandingPage from "./components/pages/landingPage";
 import Login from "./components/pages/loginPage";
 import Signup from "./components/pages/registerPage";
 import PrivateUserProfile from "./components/pages/privateUserProfilePage";
-import UserProfileImage from "./components/pages/userProfileImage";
 import { createContext, useState, useEffect } from "react";
 import getUserInfo from "./utilities/decodeJwt";
 import GeoLocation from './components/location/geoLocation'
@@ -33,7 +32,6 @@ const App = () => {
           <Route exact path="/login" element={<Login />} />
           <Route exact path="/signup" element={<Signup />} />
           <Route path="/privateUserProfile" element={<PrivateUserProfile />} />
-          <Route path="/userProfileImage" element={<UserProfileImage />} />
           <Route path="/geoLocation" element={< GeoLocation />} />
           <Route path="/findUsersNearby" element={< FindUsersNearby />} />
           <Route path="/chat" element={< Chat />} />
