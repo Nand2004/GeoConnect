@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Button, Alert, Toast } from "react-bootstrap";
+import { Button, Alert, Toast, Card } from "react-bootstrap";
 import axios from "axios";
 import { io } from "socket.io-client";
 import getUserInfo from "../../utilities/decodeJwt";
 import "./chat.css";
 import UserSelectionModal from "./userSelectionModal"; // Import the modal
 import { MdOutlineGroup } from "react-icons/md";
+import { BsSend, BsPlus, BsPeople, BsTrash } from "react-icons/bs";
 import { useLocation } from 'react-router-dom';
 
 
@@ -340,10 +341,185 @@ function Chat() {
   );
 
   return (
-    <div className="app" style={{ paddingTop: '60px' }}>
-      <NotificationToast />
+    <div className="vh-100 pt-4" style={{ paddingTop: '60px', overflowY: 'auto'}}>
+      <div className="container-fluid h-100" style={{ height: '60vh', overflow: 'hidden', paddingTop: '55px', background: "linear-gradient(135deg, #0F2027, #203A43, #2C5364)" }}>
+        <div className="row h-100">
+          {/* Sidebar */}
+          <div className="col-md-4 col-lg-3 h-100">
+            <Card className="h-100">
+              <NotificationToast />
 
-      {/* UserSelectionModal props from seperate import file */}
+              {/* UserSelectionModal props from seperate import file */}
+              <UserSelectionModal
+                showUserModal={showUserModal}
+                setShowUserModal={setShowUserModal}
+                chatMode={chatMode}
+                groupName={groupName}
+                setGroupName={setGroupName}
+                search={search}
+                setSearch={setSearch}
+                searchResults={searchResults}
+                selectedUsers={selectedUsers}
+                handleSearch={handleSearch}
+                handleUserSelect={handleUserSelect}
+                handleCreateChat={handleCreateChat}
+              />              
+              <Card.Body className="d-flex flex-column h-100">
+                <div className="mb-3 d-flex gap-2">
+                  <Button
+                    variant="primary"
+                    className="w-50 d-flex align-items-center justify-content-center gap-2"
+                    onClick={() => {
+                      setChatMode("direct");
+                      setShowUserModal(true);
+                      setSelectedUsers([]);
+                      setSearch("");
+                    }}
+                  >
+                    <BsPlus size={20} />
+                    New Chat
+                  </Button>
+                  <Button
+                    variant="outline-primary"
+                    className="w-50 d-flex align-items-center justify-content-center gap-2"
+                    onClick={() => {
+                      setChatMode("group");
+                      setShowUserModal(true);
+                      setSelectedUsers([]);
+                      setSearch("");
+                      setGroupName("");
+                    }}
+                  >
+                    <BsPeople size={20} />
+                    New Group
+                  </Button>
+                </div>
+
+                {error && <Alert variant="danger">{error}</Alert>}
+                {successMessage && <Alert variant="success">{successMessage}</Alert>}
+
+                <div className="overflow-auto flex-grow-1">
+                  {chatHistory.slice().reverse().map((chat) => (
+                    <Card
+                      key={chat._id}
+                      className={`mb-2 cursor-pointer ${chatId === chat._id ? 'border-primary' : ''}`}
+                      onClick={() => handleChatSelect(chat)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <Card.Body className="d-flex justify-content-between align-items-center py-2">
+                        <div className="d-flex align-items-center gap-2">
+                          <div>
+                            <div className="d-flex align-items-center gap-2">
+                              <span className="fw-medium">
+                                {chat.chatType === "group" ? (
+                                  <>
+                                    {chat.chatName}
+                                    <MdOutlineGroup className="ms-2" />
+                                  </>
+                                ) : (
+                                  chat.usernames.filter(username => username !== currentUser.username).join(", ")
+                                )}
+                              </span>
+                            </div>
+                            {unreadCounts[chat._id] > 0 && (
+                              <span className="badge bg-primary">{unreadCounts[chat._id]} new</span>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          variant="link"
+                          className="text-danger p-0"
+                          onClick={e => handleDeleteChat(e, chat._id)}
+                        >
+                          <BsTrash size={18} />
+                        </Button>
+                      </Card.Body>
+                    </Card>
+                  ))}
+                </div>
+              </Card.Body>
+            </Card>
+          </div>
+
+          {/* Chat Window */}
+          <div className="col-md-8 col-lg-9 h-100">
+            <Card className="h-100">
+              {chatId ? (
+                <>
+                  <Card.Header>
+                    <h5 className="mb-0 d-flex align-items-center gap-2">
+                      {chatHistory.find((chat) => chat._id === chatId)?.chatType === "group" ? (
+                        <>
+                          {chatHistory.find((chat) => chat._id === chatId)?.chatName || "Unnamed Group"}
+                          <MdOutlineGroup />
+                        </>
+                      ) : (
+                        chatHistory
+                          .find((chat) => chat._id === chatId)
+                          ?.usernames.filter((username) => username !== currentUser.username)
+                          .join(", ")
+                      )}
+                    </h5>
+                  </Card.Header>
+                  <Card.Body className="d-flex flex-column" style={{ height: 'calc(100% - 160px)' }}>
+                    <div className="overflow-auto flex-grow-1">
+                      {messages.length > 0 ? (
+                        messages.map((msg, index) => (
+                          <div
+                            key={index}
+                            className={`d-flex mb-3 ${msg.userId === currentUser.id ? 'justify-content-end' : 'justify-content-start'
+                              }`}
+                          >
+                            <div
+                              className={`p-3 rounded-3 ${msg.userId === currentUser.id
+                                  ? 'bg-primary text-white'
+                                  : 'bg-light'
+                                }`}
+                              style={{ maxWidth: '70%' }}
+                            >
+                              <div className="message-text">{msg.message}</div>
+                              <small className={msg.userId === currentUser.id ? 'text-white-50' : 'text-muted'}>
+                                {new Date(msg.timestamp).toLocaleTimeString()}
+                              </small>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center text-muted">No messages yet.</div>
+                      )}
+                    </div>
+                  </Card.Body>
+                  <Card.Footer className="bg-white">
+                    <form
+                      className="d-flex gap-2"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSendMessage(e.target.message.value);
+                        e.target.message.value = "";
+                      }}
+                    >
+                      <input
+                        type="text"
+                        name="message"
+                        className="form-control"
+                        placeholder="Type your message..."
+                      />
+                      <Button type="submit" variant="primary">
+                        <BsSend />
+                      </Button>
+                    </form>
+                  </Card.Footer>
+                </>
+              ) : (
+                <Card.Body className="d-flex align-items-center justify-content-center text-muted">
+                  Select a chat or start a new conversation
+                </Card.Body>
+              )}
+            </Card>
+          </div>
+        </div>
+      </div>
+
       <UserSelectionModal
         showUserModal={showUserModal}
         setShowUserModal={setShowUserModal}
@@ -359,132 +535,28 @@ function Chat() {
         handleCreateChat={handleCreateChat}
       />
 
-      <div className="d-flex flex-column sidebar">
-        <div className="chat-actions mb-3">
-          <Button
-            variant="primary"
-            className="me-2"
-            onClick={() => {
-              setChatMode("direct");
-              setShowUserModal(true);
-              setSelectedUsers([]);
-              setSearch("");
-            }}
-          >
-            + New Chat
-          </Button>
-          <Button
-            variant="success"
-            onClick={() => {
-              setChatMode("group");
-              setShowUserModal(true);
-              setSelectedUsers([]);
-              setSearch("");
-              setGroupName("");
-            }}
-          >
-            + New Group
-          </Button>
-        </div>
-
-        {error && <Alert variant="danger">{error}</Alert>}
-        {successMessage && <Alert variant="success">{successMessage}</Alert>}
-
-        <ul className="list-unstyled userList">
-          {chatHistory.slice().reverse().map((chat) => (
-            <li
-              key={chat._id}
-              onClick={() => handleChatSelect(chat)}
-              className="chat-item"
-            >
-              <div className="chat-info">
-                <span className={`chat-name ${unreadCounts[chat._id] ? 'fw-bold' : ''}`}>
-                  {chat.chatType === "group"
-                    ? (
-                      <>
-                        {chat.chatName}
-                        <MdOutlineGroup className="nextIcon" style={{ marginLeft: '10px', fontSize: '20px' }} />
-                      </>
-                    )
-                    : chat.usernames.filter(username => username !== currentUser.username).join(", ")
-                  }
-
-                </span>
-                {unreadCounts[chat._id] > 0 && (
-                  <span className="unread-count">{unreadCounts[chat._id]}</span>
-                )}
-              </div>
-              <div className="d-flex gap-2">
-                <Button variant="danger" onClick={e => handleDeleteChat(e, chat._id)}>Delete</Button>
-              </div>
-            </li>
-          ))}
-        </ul>
-
-      </div>
-
-      {chatId && (
-        <div className="d-flex flex-column chatWindow">
-          <h2 className="chatHeader">
-            {chatHistory
-              .find((chat) => chat._id === chatId) // Find the chat by chatId
-              ?.chatType === "group"
-              ? (
-                <>
-                  {chatHistory
-                    .find((chat) => chat._id === chatId)
-                    ?.chatName || "Unnamed Group"}
-                  <MdOutlineGroup className="nextIcon" style={{ marginLeft: '10px', fontSize: '20px' }} />
-                </>
-              )
-              : `${chatHistory
-                .find((chat) => chat._id === chatId)
-                ?.usernames.filter((username) => username !== currentUser.username)
-                .join(", ")}`}
-          </h2>
-          <div className="flex-grow-1 d-flex flex-column chatMessages">
-            {messages.length > 0 ? (
-              messages.map((msg, index) => (
-                <div
-                  key={index}
-                  className={`messageBubble ${msg.userId === currentUser.id ? "myMessage" : "otherMessage"
-                    }`}
-                >
-                  <span className="messageText">{msg.message}</span>
-                  <span className="messageTime">
-                    {new Date(msg.timestamp).toLocaleTimeString()}
-                  </span>
-                </div>
-              ))
-            ) : (
-              <div>No messages yet.</div>
-            )}
-          </div>
-          <form
-            className="messageInput"
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSendMessage(e.target.message.value);
-              e.target.message.value = "";
-            }}
-          >
-            <input
-              type="text"
-              name="message"
-              className="form-control inputField"
-              placeholder="Send a message..."
-            />
-            <button type="submit" className="btn btn-primary sendButton">
-              Send
-            </button>
-          </form>
-        </div>
-      )}
-
-
-
+      {/* Toast Notification */}
+      <Toast
+        show={showToast}
+        onClose={() => setShowToast(false)}
+        delay={3000}
+        autohide
+        style={{
+          position: 'fixed',
+          top: 20,
+          right: 20,
+          zIndex: 1000
+        }}
+      >
+        <Toast.Header>
+          <strong className="me-auto">Message from {currentNotification?.senderUsername}</strong>
+          <small>{currentNotification?.timestamp && new Date(currentNotification.timestamp).toLocaleTimeString()}</small>
+        </Toast.Header>
+        <Toast.Body>{currentNotification?.message}</Toast.Body>
+      </Toast>
     </div>
   );
 }
+
 
 export default Chat;
