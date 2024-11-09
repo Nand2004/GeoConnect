@@ -9,8 +9,7 @@ import UserSelectionModal from "./userSelectionModal"; // Import the modal
 import { MdOutlineGroup } from "react-icons/md";
 import { BsSend, BsPlus, BsPeople, BsTrash } from "react-icons/bs";
 import { useLocation } from 'react-router-dom';
-
-
+import ImageUploadHandler from './imageUploadHandler';
 
 function Chat() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -262,20 +261,17 @@ function Chat() {
         console.log("Listening Message:", message);
 
         if (message.chatId === chatId && message.sender !== currentUser.id) {
-          // Update messages for current chat
           setMessages((prev) => [
             ...prev,
             {
               userId: message.sender,
               message: message.message,
+              attachments: message.attachments || [],
               timestamp: new Date().toISOString(),
             },
           ]);
-        }
-        // Only show notification if the message is for the current user
-        else if (message.sender !== currentUser?.id) {
+        } else if (message.sender !== currentUser?.id) {
           try {
-            // Fetch sender's username
             const response = await axios.get(
               `http://localhost:8081/user/getUsernameByUserId/${message.sender}`
             );
@@ -297,7 +293,7 @@ function Chat() {
 
               const notification = {
                 id: Date.now(),
-                message: message.message,
+                message: message.attachments?.length ? '📎 Sent an image' : message.message,
                 sender: message.sender,
                 senderUsername: senderUsername,
                 chatId: message.chatId,
@@ -315,7 +311,6 @@ function Chat() {
       };
 
       socket.on("listeningMessage", handleMessage);
-
       return () => {
         socket.off("listeningMessage", handleMessage);
       };
@@ -340,8 +335,46 @@ function Chat() {
     </Toast>
   );
 
+  // Add this new function inside your Chat component, next to your other handler functions
+  const handleImageMessage = async (imageData) => {
+    if (!chatId) return;
+
+    const newMessage = {
+      userId: currentUser.id,
+      message: `📎 Image: ${imageData.name}`,
+      timestamp: new Date().toISOString(),
+      attachments: [imageData]
+    };
+
+    // Update messages state immediately for UI
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
+
+    try {
+      const response = await axios.post(
+        `http://localhost:8081/chat/chatSendMessage/${chatId}`,
+        {
+          sender: currentUser.id,
+          message: `📎 Image: ${imageData.name}`,
+          attachments: [imageData]
+        }
+      );
+
+      if (response.data) {
+        socket.emit("sendingMessage", {
+          chatId,
+          sender: currentUser.id,
+          message: `📎 Image: ${imageData.name}`,
+          attachments: [imageData]
+        });
+      }
+    } catch (error) {
+      console.error("Error sending image message:", error);
+      setError("Error sending image message.");
+    }
+  };
+
   return (
-    <div className="vh-100 pt-4" style={{ paddingTop: '60px', overflowY: 'auto'}}>
+    <div className="vh-100 pt-4" style={{ paddingTop: '60px', overflowY: 'auto' }}>
       <div className="container-fluid h-100" style={{ height: '60vh', overflow: 'hidden', paddingTop: '55px', background: "linear-gradient(135deg, #0F2027, #203A43, #2C5364)" }}>
         <div className="row h-100">
           {/* Sidebar */}
@@ -363,7 +396,7 @@ function Chat() {
                 handleSearch={handleSearch}
                 handleUserSelect={handleUserSelect}
                 handleCreateChat={handleCreateChat}
-              />              
+              />
               <Card.Body className="d-flex flex-column h-100">
                 <div className="mb-3 d-flex gap-2">
                   <Button
@@ -471,13 +504,33 @@ function Chat() {
                               }`}
                           >
                             <div
-                              className={`p-3 rounded-3 ${msg.userId === currentUser.id
-                                  ? 'bg-primary text-white'
-                                  : 'bg-light'
+                              className={`p-3 rounded-3 ${msg.userId === currentUser.id ? 'bg-primary text-white' : 'bg-light'
                                 }`}
                               style={{ maxWidth: '70%' }}
                             >
-                              <div className="message-text">{msg.message}</div>
+                              {msg.attachments && msg.attachments.length > 0 ? (
+                                <div className="d-flex flex-column gap-2">
+                                  {msg.attachments.map((attachment, idx) => (
+                                    <div key={idx}>
+                                      {attachment.mimeType.startsWith('image/') && (
+                                        <>
+                                          <img
+                                            src={attachment.type}
+                                            alt={attachment.name}
+                                            className="rounded img-fluid"
+                                            style={{ maxHeight: '200px' }}
+                                          />
+                                          <small className={msg.userId === currentUser.id ? 'text-white-50' : 'text-muted'}>
+                                            {attachment.name}
+                                          </small>
+                                        </>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="message-text">{msg.message}</div>
+                              )}
                               <small className={msg.userId === currentUser.id ? 'text-white-50' : 'text-muted'}>
                                 {new Date(msg.timestamp).toLocaleTimeString()}
                               </small>
@@ -490,24 +543,30 @@ function Chat() {
                     </div>
                   </Card.Body>
                   <Card.Footer className="bg-white">
-                    <form
-                      className="d-flex gap-2"
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        handleSendMessage(e.target.message.value);
-                        e.target.message.value = "";
-                      }}
-                    >
-                      <input
-                        type="text"
-                        name="message"
-                        className="form-control"
-                        placeholder="Type your message..."
+                    <div className="d-flex flex-column gap-2">
+                      <ImageUploadHandler
+                        onImageSubmit={handleImageMessage}
+                        chatId={chatId}
                       />
-                      <Button type="submit" variant="primary">
-                        <BsSend />
-                      </Button>
-                    </form>
+                      <form
+                        className="d-flex gap-2"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          handleSendMessage(e.target.message.value);
+                          e.target.message.value = "";
+                        }}
+                      >
+                        <input
+                          type="text"
+                          name="message"
+                          className="form-control"
+                          placeholder="Type your message..."
+                        />
+                        <Button type="submit" variant="primary">
+                          <BsSend />
+                        </Button>
+                      </form>
+                    </div>
                   </Card.Footer>
                 </>
               ) : (
