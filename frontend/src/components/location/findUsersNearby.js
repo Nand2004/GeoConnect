@@ -56,7 +56,7 @@ const FindUsersNearby = () => {
           <input
             type="range"
             min="100"
-            max="1000"
+            max="5000"
             step="100"
             value={searchDistance}
             onChange={(e) => setSearchDistance(Number(e.target.value))}
