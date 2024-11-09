@@ -8,7 +8,6 @@ import {
   Camera,
   Mail,
   User,
-  Shield,
   LogOut,
   Settings,
   Lock,
@@ -107,6 +106,16 @@ const PrivateUserProfile = () => {
     { icon: MapPin, label: 'Found Nearby', value: 3 }
   ];
 
+  const handleStatsClick = (label) => {
+    if (label === 'Chats') {
+      navigate('/chat'); 
+    }
+    else if (label === 'Found Nearby') {
+      navigate('/findUsersNearby');
+    }
+    // Add other conditions here if you want different routes for each stat
+  };
+
   return (
     <div style={styles.profileContainer}>
       <div style={styles.profileCard}>
@@ -166,7 +175,7 @@ const PrivateUserProfile = () => {
       <div style={styles.quickStats}>
         {stats.map(({ icon: Icon, label, value }) => (
           <div key={label} style={styles.quickStat}>
-            <Icon size={20} style={styles.statIcon} />
+            <Icon size={20} style={styles.statIcon} onClick={() => handleStatsClick(label)}/>
             <span style={styles.quickStatNumber}>{value}</span>
             <span style={styles.quickStatLabel}>{label}</span>
           </div>
@@ -245,6 +254,8 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
+    marginTop: "20px",
+
   },
   profileCard: {
     width: "100%",
@@ -284,11 +295,12 @@ const styles = {
     zIndex: "1",
   },
   profilePic: {
-    width: "100%",
-    height: "100%",
+    width: "150px",
+    height: "150px",
     borderRadius: "50%",
     objectFit: "cover",
     border: "3px solid rgba(97, 218, 251, 0.5)",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
   },
   imageGlow: {
     position: "absolute",
