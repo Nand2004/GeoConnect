@@ -4,10 +4,10 @@ import { Route, Routes } from "react-router-dom";
 
 // We import all the components we need in our app
 import Navbar from "./components/navbar";
-import LandingPage from "./components/pages/landingPage";
-import Login from "./components/pages/loginPage";
-import Signup from "./components/pages/registerPage";
-import PrivateUserProfile from "./components/pages/privateUserProfilePage";
+import LandingPage from "./components/users/landingPage";
+import Login from "./components/users/loginPage";
+import Signup from "./components/users/registerPage";
+import PrivateUserProfile from "./components/users/privateUserProfilePage";
 import { createContext, useState, useEffect } from "react";
 import getUserInfo from "./utilities/decodeJwt";
 import GeoLocation from './components/location/geoLocation'
