@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Card, Button, Container, Row, Col, Spinner, Alert } from 'react-bootstrap';
+import { Card, Button, Container, Row, Col, Alert } from 'react-bootstrap';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import { MapPin, Users, Loader2, AlertCircle, Mail, Navigation, Search } from 'lucide-react';
+import ChatButton from '../chat/chatButton';
+import getUserInfo from "../../utilities/decodeJwt";
+
+
 
 const FindUsersNearby = () => {
   const [location, setLocation] = useState({ latitude: null, longitude: null });
@@ -12,6 +16,7 @@ const FindUsersNearby = () => {
   const [message, setMessage] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchDistance, setSearchDistance] = useState(500);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const googleMapsApiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
@@ -22,17 +27,35 @@ const FindUsersNearby = () => {
 
     navigator.geolocation
       ? navigator.geolocation.getCurrentPosition(
-          ({ coords }) => {
-            setLocation({ latitude: coords.latitude, longitude: coords.longitude });
-            findUsersNearby(coords.latitude, coords.longitude);
-          },
-          () => {
-            setLoading(false);
-            setError('Error getting your location. Please enable location access.');
-          }
-        )
+        ({ coords }) => {
+          setLocation({ latitude: coords.latitude, longitude: coords.longitude });
+          findUsersNearby(coords.latitude, coords.longitude);
+          console.log("The User's location is : ", location);
+        },
+        () => {
+          setLoading(false);
+          setError('Error getting your location. Please enable location access.');
+        }
+      )
       : setError('Geolocation is not supported by this browser.');
   };
+
+  useEffect(() => {
+    const userInfo = getUserInfo();
+    if (userInfo) {
+      setCurrentUser(userInfo);
+    }
+  }, []);
+
+  useEffect(() => {
+    getUserLocation();  // Get the location immediately when the component mounts
+
+    const interval = setInterval(() => {
+      getUserLocation();  // Get the location every 2 minutes
+    }, 120000); 
+
+    return () => clearInterval(interval);
+  }, []);
 
   const findUsersNearby = async (latitude, longitude) => {
     try {
@@ -51,12 +74,12 @@ const FindUsersNearby = () => {
     <Container className="py-5" style={styles.container}>
       <div className="text-center mb-5">
         <h2 style={styles.title}>Find Users Nearby</h2>
-        
+
         <div className="d-flex align-items-center justify-content-center gap-3 mb-4">
           <input
             type="range"
             min="100"
-            max="5000"
+            max="1000"
             step="100"
             value={searchDistance}
             onChange={(e) => setSearchDistance(Number(e.target.value))}
@@ -66,7 +89,7 @@ const FindUsersNearby = () => {
           <span className="text-white">
             Search radius: {searchDistance}m
           </span>
-          
+
           <Button
             onClick={getUserLocation}
             style={styles.button}
@@ -90,7 +113,7 @@ const FindUsersNearby = () => {
             {error}
           </Alert>
         )}
-        
+
         {message && (
           <Alert variant="info" style={styles.alert} className="d-flex align-items-center gap-2">
             <Users size={20} />
@@ -102,7 +125,7 @@ const FindUsersNearby = () => {
       <Row>
         {nearbyUsers.map((user, index) => (
           <Col key={index} md={4} className="mb-4">
-            <Card 
+            <Card
               style={styles.card}
               className="h-100"
               onClick={() => setSelectedUser(user)}
@@ -115,7 +138,8 @@ const FindUsersNearby = () => {
                       <Mail size={16} />
                       {user.email}
                     </div>
-                  </div>
+                </div>
+
                   <div className="d-flex align-items-center gap-1 text-success">
                     <Navigation size={16} />
                     <span className="small">
@@ -130,7 +154,7 @@ const FindUsersNearby = () => {
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="d-flex gap-3 mt-3 text-muted small">
                   <div className="d-flex align-items-center gap-1">
                     <MapPin size={14} />
@@ -141,6 +165,22 @@ const FindUsersNearby = () => {
                     {user.location.coordinates[0].toFixed(4)}°E
                   </div>
                 </div>
+
+                <div className="mt-auto pt-3">
+                  <ChatButton 
+                    targetUser={user}
+                    currentUserId={currentUser?.id}
+                    onSuccess={(message) => {
+                      setMessage(message);
+                      setTimeout(() => setMessage(''), 3000);
+                    }}
+                    onError={(error) => {
+                      setError(error);
+                      setTimeout(() => setError(''), 3000);
+                    }}
+                  />
+                </div>
+                
               </Card.Body>
             </Card>
           </Col>
@@ -179,7 +219,7 @@ const FindUsersNearby = () => {
                 ]
               }}
             >
-              <Marker 
+              <Marker
                 position={{ lat: location.latitude, lng: location.longitude }}
                 icon={{
                   path: "M-20,0a20,20 0 1,0 40,0a20,20 0 1,0 -40,0",
@@ -189,7 +229,7 @@ const FindUsersNearby = () => {
                   scale: 0.5
                 }}
               />
-              
+
               {nearbyUsers.map((user, index) => (
                 <Marker
                   key={index}
@@ -204,12 +244,12 @@ const FindUsersNearby = () => {
                   onClick={() => setSelectedUser(user)}
                 />
               ))}
-              
+
               {selectedUser && (
                 <InfoWindow
-                  position={{ 
-                    lat: selectedUser.location.coordinates[1], 
-                    lng: selectedUser.location.coordinates[0] 
+                  position={{
+                    lat: selectedUser.location.coordinates[1],
+                    lng: selectedUser.location.coordinates[0]
                   }}
                   onCloseClick={() => setSelectedUser(null)}
                 >
@@ -252,7 +292,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const Δλ = (lon2-lon1) * Math.PI/180;
 
   const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-          Math.cos(φ1) * Math.cos(φ2) *
+    Math.cos(φ1) * Math.cos(φ2) *
           Math.sin(Δλ/2) * Math.sin(Δλ/2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 

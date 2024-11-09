@@ -7,6 +7,8 @@ import getUserInfo from "../../utilities/decodeJwt";
 import "./chat.css";
 import UserSelectionModal from "./userSelectionModal"; // Import the modal
 import { MdOutlineGroup } from "react-icons/md";
+import { useLocation } from 'react-router-dom';
+
 
 
 function Chat() {
@@ -24,6 +26,8 @@ function Chat() {
   const [showToast, setShowToast] = useState(false);
   const [currentNotification, setCurrentNotification] = useState(null);
   const [unreadCounts, setUnreadCounts] = useState({});
+  const location = useLocation();
+
 
   // New states for user selection modal
   // New states for user selection modal
@@ -36,6 +40,17 @@ function Chat() {
     const userInfo = getUserInfo();
     if (userInfo) setCurrentUser(userInfo);
   }, []);
+
+  useEffect(() => {
+    // If a specific chatId was passed through navigation
+    if (location.state?.chatId) {
+      setChatId(location.state.chatId);
+      if (location.state.targetUser) {
+        setSelectedUser(location.state.targetUser);
+      }
+      loadMessages(location.state.chatId);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     const newSocket = io("http://localhost:8081");
