@@ -23,24 +23,23 @@ const PrivateUserProfile = () => {
     window.location.reload();
   };
 
-  // Fetch user data on component mount
+// Fetch user data on component mount
 useEffect(() => {
   const userInfo = getUserInfo();
   setUser(userInfo);
 
-  // Fetch user profile image from the backend (example API endpoint)
-  axios.get(`http://localhost:8081/user/${userInfo.id}/profile-image`)
-    .then((res) => {
-      // Use fetched profile image if available, otherwise use default
-      const fetchedProfileImage = res.data.profileImage ? res.data.profileImage : "default-profile-image-url";
-      setProfileImage(fetchedProfileImage);  // Set profile image in state
-    })
-    .catch((error) => {
-      console.error("Error fetching profile image:", error);
-      // Use default image in case of error
-      setProfileImage("default-profile-image-url");
-    });
+  axios.get(`http://localhost:8081/user/getUserProfileImage/${userInfo.id}`)
+  .then((res) => {
+    const fetchedProfileImage = res.data.profileImage || "default-profile-image-url";
+    setProfileImage(fetchedProfileImage);
+  })
+  .catch((error) => {
+    console.error("Error fetching profile image:", error);
+    setProfileImage("default-profile-image-url");
+  });
+
 }, []);
+
 
 
   // Handle image file selection
