@@ -184,34 +184,45 @@ function Chat() {
     }
   };
 
-  const handleSendMessage = async (message) => {
-    if (!message.trim() || !chatId) return;
-
-    // Immediately add the message to the messages state
-    const newMessage = {
+  const handleSendMessage = async (message, imageData = null) => {
+    if (!message.trim() && !imageData) return; // Make sure there's a message or an image to send
+    if (!chatId) return; // Ensure chatId exists
+  
+    let newMessage = {
       userId: currentUser.id,
-      message: message,
       timestamp: new Date().toISOString(),
     };
-
+  
+    // If there's an image, handle the image message
+    if (imageData) {
+      newMessage.message = `📎 Image: ${imageData.name}`;
+      newMessage.attachments = [imageData];
+    } else {
+      // Handle normal text message
+      newMessage.message = message;
+    }
+  
     // Update the state immediately to reflect the sent message
     setMessages((prevMessages) => [...prevMessages, newMessage]);
-
+  
     try {
+      // Send the message via API (including attachments if any)
       const response = await axios.post(
         `http://localhost:8081/chat/chatSendMessage/${chatId}`,
         {
           sender: currentUser.id,
-          message: message,
+          message: newMessage.message,
+          attachments: imageData ? [imageData] : [], // Attach image if available
         }
       );
-
+  
       if (response.data) {
         // Emit the message through the socket
         socket.emit("sendingMessage", {
           chatId,
           sender: currentUser.id,
-          message,
+          message: newMessage.message,
+          attachments: imageData ? [imageData] : [],
         });
       } else {
         setError("Failed to send message. Please try again.");
@@ -220,8 +231,10 @@ function Chat() {
       console.error("Error sending message:", error);
       setError("Error sending message.");
     }
-    console.log("sent message: ", message);
+  
+    console.log("Sent message: ", newMessage);
   };
+  
 
 
   const handleDeleteChat = async (e, chatId) => {
@@ -335,43 +348,6 @@ function Chat() {
     </Toast>
   );
 
-  // Add this new function inside your Chat component, next to your other handler functions
-  const handleImageMessage = async (imageData) => {
-    if (!chatId) return;
-
-    const newMessage = {
-      userId: currentUser.id,
-      message: `📎 Image: ${imageData.name}`,
-      timestamp: new Date().toISOString(),
-      attachments: [imageData]
-    };
-
-    // Update messages state immediately for UI
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
-
-    try {
-      const response = await axios.post(
-        `http://localhost:8081/chat/chatSendMessage/${chatId}`,
-        {
-          sender: currentUser.id,
-          message: `📎 Image: ${imageData.name}`,
-          attachments: [imageData]
-        }
-      );
-
-      if (response.data) {
-        socket.emit("sendingMessage", {
-          chatId,
-          sender: currentUser.id,
-          message: `📎 Image: ${imageData.name}`,
-          attachments: [imageData]
-        });
-      }
-    } catch (error) {
-      console.error("Error sending image message:", error);
-      setError("Error sending image message.");
-    }
-  };
 
   return (
     <div className="vh-100 pt-4" style={{ paddingTop: '60px', overflowY: 'auto' }}>
@@ -543,9 +519,11 @@ function Chat() {
                     </div>
                   </Card.Body>
                   <Card.Footer className="bg-white">
+
+                    
                     <div className="d-flex flex-column gap-2">
                       <ImageUploadHandler
-                        onImageSubmit={handleImageMessage}
+                        onImageSubmit={handleSendMessage}
                         chatId={chatId}
                       />
                       <form
