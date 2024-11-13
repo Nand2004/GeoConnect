@@ -15,12 +15,12 @@ function Chat() {
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");// eslint-disable-next-line
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [chatHistory, setChatHistory] = useState([]);
   const [socket, setSocket] = useState(null);
-  const [chatId, setChatId] = useState(null);
+  const [chatId, setChatId] = useState(null);// eslint-disable-next-line
   const [notifications, setNotifications] = useState([]);
   const [showToast, setShowToast] = useState(false);
   const [currentNotification, setCurrentNotification] = useState(null);
@@ -196,8 +196,13 @@ function Chat() {
       if (response.data && response.data.messages) {
         const loadedMessages = response.data.messages.map((msg) => ({
           userId: msg.sender,
-          message: msg.message,
+          message: msg.message || '',
           timestamp: msg.timestamp,
+          attachments: msg.attachments ? msg.attachments.map(attachment => ({
+            type: attachment,
+            name: attachment.split('/').pop(), // Extract filename from URL
+            mimeType: attachment.match(/\.(jpg|jpeg|png|gif)$/i) ? 'image/' + attachment.split('.').pop().toLowerCase() : 'application/octet-stream'
+          })) : []
         }));
         setMessages(loadedMessages);
       } else {
@@ -443,7 +448,7 @@ function Chat() {
           <div className="col-md-4 col-lg-3 h-100">
             <Card className="h-100">
               <NotificationToast />
-              
+
               <Card.Body className="d-flex flex-column h-100">
                 <div className="mb-3 d-flex gap-2">
                   <Button
@@ -547,37 +552,27 @@ function Chat() {
                         messages.map((msg, index) => (
                           <div
                             key={index}
-                            className={`d-flex mb-3 ${msg.userId === currentUser.id ? 'justify-content-end' : 'justify-content-start'
-                              }`}
+                            className={`d-flex mb-3 ${msg.userId === currentUser.id ? 'justify-content-end' : 'justify-content-start'}`}
                           >
                             <div
-                              className={`p-3 rounded-3 ${msg.userId === currentUser.id ? 'bg-primary text-white' : 'bg-light'
-                                }`}
+                              className={`p-3 rounded-3 ${msg.userId === currentUser.id ? 'bg-primary text-white' : 'bg-light'}`}
                               style={{ maxWidth: '70%' }}
                             >
-                              {msg.attachments && msg.attachments.length > 0 ? (
-                                <div className="d-flex flex-column gap-2">
-                                  {msg.attachments.map((attachment, index) => (
-                                    <div key={index}>
-                                      {attachment.mimeType.startsWith('image/') && (
-                                        <>
-                                          <img
-                                            src={attachment.type}
-                                            alt={attachment.name}
-                                            className="rounded img-fluid"
-                                            style={{ maxHeight: '200px' }}
-                                          />
-                                          <small className={msg.userId === currentUser.id ? 'text-white-50' : 'text-muted'}>
-                                            {attachment.name}
-                                          </small>
-                                        </>
-                                      )}
+                              {msg.attachments && msg.attachments.length > 0 && (
+                                <div className="d-flex flex-column gap-2 mb-2">
+                                  {msg.attachments.map((attachment, idx) => (
+                                    <div key={idx}>
+                                      <img
+                                        src={attachment.type}
+                                        alt={attachment.name}
+                                        className="rounded img-fluid"
+                                        style={{ maxHeight: '200px' }}
+                                      />
                                     </div>
                                   ))}
                                 </div>
-                              ) : (
-                                <div className="message-text">{msg.message}</div>
                               )}
+                              {msg.message && <div className="message-text">{msg.message}</div>}
                               <small className={msg.userId === currentUser.id ? 'text-white-50' : 'text-muted'}>
                                 {new Date(msg.timestamp).toLocaleTimeString()}
                               </small>
@@ -586,8 +581,7 @@ function Chat() {
                         ))
                       ) : (
                         <div className="text-center text-muted">No messages yet.</div>
-                      )}
-                    </div>
+                      )}                    </div>
                   </Card.Body>
                   <Card.Footer className="bg-white">
                     <div className="d-flex flex-column gap-2">
