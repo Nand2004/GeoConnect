@@ -7,9 +7,8 @@ import getUserInfo from "../../utilities/decodeJwt";
 import "./chat.css";
 import UserSelectionModal from "./userSelectionModal"; // Import the modal
 import { MdOutlineGroup } from "react-icons/md";
-import { BsSend, BsPlus, BsPeople, BsTrash } from "react-icons/bs";
+import { BsSend, BsPlus, BsPeople, BsTrash, BsImage } from "react-icons/bs";
 import { useLocation } from 'react-router-dom';
-import ImageUploadHandler from './imageUploadHandler';
 
 function Chat() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -28,8 +27,46 @@ function Chat() {
   const [unreadCounts, setUnreadCounts] = useState({});
   const location = useLocation();
 
+  //Image State
 
-  // New states for user selection modal
+  const [selectedImage, setSelectedImage] = useState(null); //State to store selectedImage.
+  const handleImageClick = () => {
+    document.getElementById('image').click();
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
+    if (file && file.size > MAX_SIZE) {
+      setError('Image size must be less than 5MB');
+      return;
+    }
+
+    if (file && file.type.startsWith('image/')) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imgPreview = event.target.result;
+        const previewElement = document.getElementById('imagePreview');
+        if (previewElement) {
+          previewElement.src = imgPreview;
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+
+  const clearImageSelection = () => {
+    setSelectedImage(null);
+    if (document.getElementById('imagePreview')) {
+      document.getElementById('imagePreview').src = '';
+    }
+  };
+
+
+
   // New states for user selection modal
   const [showUserModal, setShowUserModal] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -115,8 +152,6 @@ function Chat() {
     }
   };
 
-
-
   const handleCreateChat = async () => {
     if (!currentUser || !selectedUsers.length) return;
 
@@ -184,57 +219,101 @@ function Chat() {
     }
   };
 
-  const handleSendMessage = async (message, imageData = null) => {
-    if (!message.trim() && !imageData) return; // Make sure there's a message or an image to send
-    if (!chatId) return; // Ensure chatId exists
-  
-    let newMessage = {
-      userId: currentUser.id,
-      timestamp: new Date().toISOString(),
-    };
-  
-    // If there's an image, handle the image message
-    if (imageData) {
-      newMessage.message = `📎 Image: ${imageData.name}`;
-      newMessage.attachments = [imageData];
-    } else {
-      // Handle normal text message
-      newMessage.message = message;
-    }
-  
-    // Update the state immediately to reflect the sent message
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
-  
+  const handleSendMessage = async (message, selectedImage = null) => {
     try {
-      // Send the message via API (including attachments if any)
-      const response = await axios.post(
+      // Input validation with better error handling
+      if (!chatId || !currentUser?.id) {
+        setError('Chat session not found');
+        return;
+      }
+
+      if (!message?.trim() && !selectedImage) {
+        setError('Please provide a message or image');
+        return;
+      }
+
+      // Prepare base message object
+      const newMessage = {
+        userId: currentUser.id,
+        timestamp: new Date().toISOString(),
+        message: message?.trim() || '',
+        attachments: []
+      };
+
+      // Handle image upload if present
+      let uploadedImageUri = null;
+      if (selectedImage) {
+        try {
+          const formData = new FormData();
+          formData.append('image', selectedImage);
+          formData.append('name', `${currentUser.id}_${Date.now()}`);
+
+          const imageResponse = await axios.post(
+            'http://localhost:8081/image/createImage',
+            formData,
+            {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+            }
+          );
+
+          if (imageResponse.data && imageResponse.data.imageUri) {
+            uploadedImageUri = imageResponse.data.imageUri;
+            newMessage.attachments = [{
+              type: uploadedImageUri,
+              name: selectedImage.name,
+              mimeType: selectedImage.type
+            }];
+          }
+        } catch (imageError) {
+          console.error('Error uploading image:', imageError);
+          setError('Failed to upload image. Please try again.');
+          return;
+        }
+      }
+
+      // Send message to backend
+      const messageResponse = await axios.post(
         `http://localhost:8081/chat/chatSendMessage/${chatId}`,
         {
           sender: currentUser.id,
           message: newMessage.message,
-          attachments: imageData ? [imageData] : [], // Attach image if available
+          attachments: uploadedImageUri ? [uploadedImageUri] : []
         }
       );
-  
-      if (response.data) {
-        // Emit the message through the socket
-        socket.emit("sendingMessage", {
-          chatId,
-          sender: currentUser.id,
-          message: newMessage.message,
-          attachments: imageData ? [imageData] : [],
-        });
-      } else {
-        setError("Failed to send message. Please try again.");
+
+      if (messageResponse.data) {
+        // Update local messages state
+        setMessages(prevMessages => [...prevMessages, newMessage]);
+
+        // Emit socket event
+        if (socket) {
+          socket.emit('sendingMessage', {
+            chatId,
+            sender: currentUser.id,
+            message: newMessage.message,
+            attachments: newMessage.attachments
+          });
+        }
+
+        // Clear image preview and selection
+        if (selectedImage) {
+          setSelectedImage(null);
+          const previewElement = document.getElementById('imagePreview');
+          if (previewElement) {
+            previewElement.src = '';
+          }
+        }
+
+        return true; // Indicate successful message send
       }
     } catch (error) {
-      console.error("Error sending message:", error);
-      setError("Error sending message.");
+      console.error('Error in handleSendMessage:', error);
+      setError(error.message || 'Error sending message. Please try again.');
+      return false; // Indicate failed message send
     }
-  
-    console.log("Sent message: ", newMessage);
   };
-  
 
 
   const handleDeleteChat = async (e, chatId) => {
@@ -348,6 +427,25 @@ function Chat() {
     </Toast>
   );
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const messageText = e.target.message.value;
+
+    try {
+      const success = await handleSendMessage(messageText, selectedImage);
+      if (success) {
+        e.target.message.value = "";
+        setSelectedImage(null);
+        const previewElement = document.getElementById('imagePreview');
+        if (previewElement) {
+          previewElement.src = '';
+        }
+      }
+    } catch (error) {
+      console.error('Error in handleSubmit:', error);
+      setError('Failed to send message');
+    }
+  };
 
   return (
     <div className="vh-100 pt-4" style={{ paddingTop: '60px', overflowY: 'auto' }}>
@@ -519,20 +617,47 @@ function Chat() {
                     </div>
                   </Card.Body>
                   <Card.Footer className="bg-white">
-
-                    
                     <div className="d-flex flex-column gap-2">
-                      <ImageUploadHandler
-                        onImageSubmit={handleSendMessage}
-                        chatId={chatId}
-                      />
+                      <div className="d-flex align-items-center gap-2">
+                        <Button
+                          variant="outline-secondary"
+                          className="position-relative p-2"
+                          style={{ width: '40px', height: '40px' }}
+                        >
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="position-absolute top-0 start-0 opacity-0 w-100 h-100"
+                            style={{ cursor: 'pointer' }}
+                          />
+                          <BsImage />
+                        </Button>
+                        {selectedImage && (
+                          <Button
+                            variant="outline-danger"
+                            size="sm"
+                            onClick={clearImageSelection}
+                          >
+                            Clear Image
+                          </Button>
+                        )}
+                      </div>
+
+                      {selectedImage && (
+                        <div className="position-relative">
+                          <img
+                            id="imagePreview"
+                            alt="Selected"
+                            className="rounded"
+                            style={{ maxWidth: "180px", height: "auto" }}
+                          />
+                        </div>
+                      )}
+
                       <form
                         className="d-flex gap-2"
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          handleSendMessage(e.target.message.value);
-                          e.target.message.value = "";
-                        }}
+                        onSubmit={handleSubmit}
                       >
                         <input
                           type="text"
@@ -545,8 +670,7 @@ function Chat() {
                         </Button>
                       </form>
                     </div>
-                  </Card.Footer>
-                </>
+                  </Card.Footer>                </>
               ) : (
                 <Card.Body className="d-flex align-items-center justify-content-center text-muted">
                   Select a chat or start a new conversation
