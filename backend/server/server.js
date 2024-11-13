@@ -68,8 +68,6 @@ app.use('/chat', require('./routes/chat/chatDeleteChat'));
 
 // // Image routes
 
-// app.use('/image', require('./routes/images'));
-
 app.use('/image', require('./routes/image/createImage'));
 app.use('/image', require('./routes/image/deleteImage'));
 app.use('/image', require('./routes/image/profileImageUpload'));
