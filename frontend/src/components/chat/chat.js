@@ -9,6 +9,7 @@ import UserSelectionModal from "./userSelectionModal"; // Import the modal
 import { MdOutlineGroup } from "react-icons/md";
 import { BsSend, BsPlus, BsPeople, BsTrash, BsImage } from "react-icons/bs";
 import { useLocation } from 'react-router-dom';
+import ImageEnlarged from './imageEnlarged';
 
 function Chat() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -31,6 +32,8 @@ function Chat() {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [groupName, setGroupName] = useState("");
   const [chatMode, setChatMode] = useState("direct");
+  const [enlargedImage, setEnlargedImage] = useState(null);
+
 
   useEffect(() => {
     const userInfo = getUserInfo();
@@ -567,6 +570,7 @@ function Chat() {
                                         alt={attachment.name}
                                         className="rounded img-fluid"
                                         style={{ maxHeight: '200px' }}
+                                        onClick={() => setEnlargedImage(attachment.type)} 
                                       />
                                     </div>
                                   ))}
@@ -682,6 +686,9 @@ function Chat() {
         </Toast.Header>
         <Toast.Body>{currentNotification?.message}</Toast.Body>
       </Toast>
+
+      <ImageEnlarged image={enlargedImage} onClose={() => setEnlargedImage(null)} />
+
     </div>
   );
 }
