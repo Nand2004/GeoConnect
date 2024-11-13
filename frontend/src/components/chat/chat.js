@@ -455,22 +455,7 @@ function Chat() {
           <div className="col-md-4 col-lg-3 h-100">
             <Card className="h-100">
               <NotificationToast />
-
-              {/* UserSelectionModal props from seperate import file */}
-              <UserSelectionModal
-                showUserModal={showUserModal}
-                setShowUserModal={setShowUserModal}
-                chatMode={chatMode}
-                groupName={groupName}
-                setGroupName={setGroupName}
-                search={search}
-                setSearch={setSearch}
-                searchResults={searchResults}
-                selectedUsers={selectedUsers}
-                handleSearch={handleSearch}
-                handleUserSelect={handleUserSelect}
-                handleCreateChat={handleCreateChat}
-              />
+              
               <Card.Body className="d-flex flex-column h-100">
                 <div className="mb-3 d-flex gap-2">
                   <Button
