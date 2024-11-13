@@ -26,49 +26,8 @@ function Chat() {
   const [currentNotification, setCurrentNotification] = useState(null);
   const [unreadCounts, setUnreadCounts] = useState({});
   const location = useLocation();
-
-  //Image State
-
   const [selectedImage, setSelectedImage] = useState(null); //State to store selectedImage.
-  const handleImageClick = () => {
-    document.getElementById('image').click();
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-
-    if (file && file.size > MAX_SIZE) {
-      setError('Image size must be less than 5MB');
-      return;
-    }
-
-    if (file && file.type.startsWith('image/')) {
-      setSelectedImage(file);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const imgPreview = event.target.result;
-        const previewElement = document.getElementById('imagePreview');
-        if (previewElement) {
-          previewElement.src = imgPreview;
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-
-  const clearImageSelection = () => {
-    setSelectedImage(null);
-    if (document.getElementById('imagePreview')) {
-      document.getElementById('imagePreview').src = '';
-    }
-  };
-
-
-
-  // New states for user selection modal
-  const [showUserModal, setShowUserModal] = useState(false);
+  const [showUserModal, setShowUserModal] = useState(false); //UserModal State
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [groupName, setGroupName] = useState("");
   const [chatMode, setChatMode] = useState("direct");
@@ -122,6 +81,38 @@ function Chat() {
     };
     fetchChatHistory();
   }, [currentUser]);
+
+  //Image functions
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
+    if (file && file.size > MAX_SIZE) {
+      setError('Image size must be less than 5MB');
+      return;
+    }
+
+    if (file && file.type.startsWith('image/')) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imgPreview = event.target.result;
+        const previewElement = document.getElementById('imagePreview');
+        if (previewElement) {
+          previewElement.src = imgPreview;
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearImageSelection = () => {
+    setSelectedImage(null);
+    if (document.getElementById('imagePreview')) {
+      document.getElementById('imagePreview').src = '';
+    }
+  };
+
 
   const handleSearch = async () => {
     if (!search) {
@@ -196,7 +187,6 @@ function Chat() {
       setError("");
     }, 3000);
   };
-
 
   const loadMessages = async (chatId) => {
     try {
@@ -305,7 +295,6 @@ function Chat() {
             previewElement.src = '';
           }
         }
-
         return true; // Indicate successful message send
       }
     } catch (error) {
@@ -314,7 +303,6 @@ function Chat() {
       return false; // Indicate failed message send
     }
   };
-
 
   const handleDeleteChat = async (e, chatId) => {
     e.stopPropagation();
@@ -569,8 +557,8 @@ function Chat() {
                             >
                               {msg.attachments && msg.attachments.length > 0 ? (
                                 <div className="d-flex flex-column gap-2">
-                                  {msg.attachments.map((attachment, idx) => (
-                                    <div key={idx}>
+                                  {msg.attachments.map((attachment, index) => (
+                                    <div key={index}>
                                       {attachment.mimeType.startsWith('image/') && (
                                         <>
                                           <img
@@ -703,6 +691,4 @@ function Chat() {
     </div>
   );
 }
-
-
 export default Chat;
