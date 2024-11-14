@@ -1,5 +1,5 @@
 .user-selection-modal .modal-content {
-    background: rgba(255, 255, 255, 0.95);
+    background: linear-gradient(135deg, #f6f9fc 0%, #ffffff 100%);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 16px;
@@ -13,7 +13,10 @@
   
   .user-selection-modal .modal-title {
     font-size: 1.5rem;
-    color: #2c3e50;
+    background: linear-gradient(135deg, #4a90e2 0%, #7f69d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
   }
   
   .section-title {
@@ -22,21 +25,35 @@
     margin-bottom: 1rem;
     display: flex;
     align-items: center;
+    font-weight: 600;
+  }
+  
+  .search-container {
+    position: relative;
+  }
+  
+  .search-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a0aec0;
   }
   
   .group-name-input,
   .search-input {
     background: rgba(255, 255, 255, 0.9);
-    border: 2px solid rgba(0, 0, 0, 0.1);
+    border: 2px solid rgba(74, 144, 226, 0.2);
     border-radius: 12px;
     padding: 0.75rem 1rem;
     transition: all 0.3s ease;
+    font-size: 0.95rem;
   }
   
   .group-name-input:focus,
   .search-input:focus {
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
-    border-color: #4299e1;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+    border-color: #4a90e2;
   }
   
   .custom-list-group {
@@ -55,18 +72,31 @@
     margin-bottom: 4px;
     border-radius: 8px !important;
     transition: all 0.2s ease;
+  }
+  
+  .search-result-item {
     cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .item-content {
+    display: flex;
+    align-items: center;
+    flex: 1;
   }
   
   .custom-list-item:hover {
     background: rgba(255, 255, 255, 0.95);
     transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.1);
   }
   
   .user-avatar {
-    width: 32px;
-    height: 32px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #4a90e2 0%, #7f69d4 100%);
     color: white;
     border-radius: 50%;
     display: flex;
@@ -74,12 +104,15 @@
     justify-content: center;
     font-weight: bold;
     margin-right: 12px;
+    font-size: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
   
   .user-name {
     flex: 1;
     font-size: 0.95rem;
     color: #2d3748;
+    font-weight: 500;
   }
   
   .remove-button {
@@ -92,14 +125,14 @@
     align-items: center;
     justify-content: center;
     border-radius: 8px;
-    background: #feb2b2;
+    background: #ff6b6b;
     border: none;
-    color: #c53030;
+    color: white;
   }
   
   .remove-button:hover {
-    background: #fc8181;
-    color: #9b2c2c;
+    background: #fa5252;
+    transform: scale(1.05);
   }
   
   .custom-list-item:hover .remove-button {
@@ -109,6 +142,13 @@
   
   .user-checkbox {
     margin-left: 12px;
+  }
+  
+  .user-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border-color: #4a90e2;
   }
   
   .cancel-button,
@@ -128,20 +168,24 @@
   .cancel-button:hover {
     background: #cbd5e0;
     color: #2d3748;
-  }
-  
-  .create-button {
-    background: #4299e1;
-    border: none;
-  }
-  
-  .create-button:hover:not(:disabled) {
-    background: #3182ce;
     transform: translateY(-1px);
   }
   
+  .create-button {
+    background: linear-gradient(135deg, #4a90e2 0%, #7f69d4 100%);
+    border: none;
+    color: white;
+    font-weight: 600;
+  }
+  
+  .create-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #357abd 0%, #6c5ab8 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
+  }
+  
   .create-button:disabled {
-    background: #90cdf4;
+    background: linear-gradient(135deg, #a8c6e4 0%, #b8aed9 100%);
     cursor: not-allowed;
   }
   
@@ -156,10 +200,10 @@
   }
   
   .custom-list-group::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(74, 144, 226, 0.2);
     border-radius: 3px;
   }
   
   .custom-list-group::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(74, 144, 226, 0.3);
   }

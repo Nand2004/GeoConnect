@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Modal, Form, Button, ListGroup } from "react-bootstrap";
 import { BsSearch, BsPeople, BsPersonPlus, BsXLg } from "react-icons/bs";
 import "./userSelectionModal.css";
@@ -17,6 +17,17 @@ const UserSelectionModal = ({
   handleUserSelect,
   handleCreateChat,
 }) => {
+  // Add debounced search effect
+  useEffect(() => {
+    const debounceSearch = setTimeout(() => {
+      if (search.trim()) {
+        handleSearch();
+      }
+    }, 300); // 300ms delay
+
+    return () => clearTimeout(debounceSearch);
+  }, [search, handleSearch]);
+
   return (
     <Modal 
       show={showUserModal} 
@@ -56,14 +67,12 @@ const UserSelectionModal = ({
           <div className="position-relative">
             <Form.Control
               type="text"
-              placeholder="Search by username..."
+              placeholder="Start typing to search users..."
               value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                handleSearch();
-              }}
+              onChange={(e) => setSearch(e.target.value)}
               className="search-input"
             />
+            <BsSearch className="search-icon" />
           </div>
         </div>
 
@@ -71,7 +80,7 @@ const UserSelectionModal = ({
           <div className="section-container mb-4">
             <h5 className="section-title">
               <BsPersonPlus className="me-2 mb-1" />
-              Selected Users
+              Selected Users ({selectedUsers.length})
             </h5>
             <ListGroup className="custom-list-group">
               {selectedUsers.map((user) => (
@@ -98,20 +107,21 @@ const UserSelectionModal = ({
           <div className="section-container">
             <h5 className="section-title">
               <BsSearch className="me-2 mb-1" />
-              Search Results
+              Search Results ({searchResults.length})
             </h5>
             <ListGroup className="custom-list-group">
               {searchResults.map((user) => (
                 <ListGroup.Item
                   key={user._id}
-                  className="custom-list-item"
+                  className="custom-list-item search-result-item"
                   onClick={() => handleUserSelect(user)}
-                  action
                 >
-                  <div className="user-avatar">
-                    {user.username[0].toUpperCase()}
+                  <div className="item-content">
+                    <div className="user-avatar">
+                      {user.username[0].toUpperCase()}
+                    </div>
+                    <span className="user-name">{user.username}</span>
                   </div>
-                  <span className="user-name">{user.username}</span>
                   <Form.Check
                     type="checkbox"
                     className="user-checkbox"
