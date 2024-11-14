@@ -5,12 +5,12 @@ import axios from "axios";
 import { io } from "socket.io-client";
 import getUserInfo from "../../utilities/decodeJwt";
 import "./chat.css";
-import UserSelectionModal from "./userSelectionModal"; // Import the modal
 import { MdOutlineGroup, MdModeEdit } from "react-icons/md";
 import { BsSend, BsPlus, BsPeople, BsTrash, BsImage } from "react-icons/bs";
 import { useLocation } from 'react-router-dom';
 import ImageEnlarged from './imageEnlarged';
 import GroupManagementModal from './groupManagementModal';
+import UserSelectionModal from './chatModal/userSelectionModal';
 
 function Chat() {
   const [currentUser, setCurrentUser] = useState(null);

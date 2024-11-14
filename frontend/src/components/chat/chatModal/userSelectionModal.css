@@ -1,0 +1,165 @@
+.user-selection-modal .modal-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+  
+  .user-selection-modal .modal-header {
+    background: transparent;
+    padding: 1.5rem 1.5rem 0.5rem;
+  }
+  
+  .user-selection-modal .modal-title {
+    font-size: 1.5rem;
+    color: #2c3e50;
+  }
+  
+  .section-title {
+    font-size: 1.1rem;
+    color: #4a5568;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+  }
+  
+  .group-name-input,
+  .search-input {
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+  }
+  
+  .group-name-input:focus,
+  .search-input:focus {
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+    border-color: #4299e1;
+  }
+  
+  .custom-list-group {
+    max-height: 200px;
+    overflow-y: auto;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  .custom-list-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: rgba(255, 255, 255, 0.8);
+    margin-bottom: 4px;
+    border-radius: 8px !important;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  
+  .custom-list-item:hover {
+    background: rgba(255, 255, 255, 0.95);
+    transform: translateY(-1px);
+  }
+  
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 12px;
+  }
+  
+  .user-name {
+    flex: 1;
+    font-size: 0.95rem;
+    color: #2d3748;
+  }
+  
+  .remove-button {
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 0.2s ease;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: #feb2b2;
+    border: none;
+    color: #c53030;
+  }
+  
+  .remove-button:hover {
+    background: #fc8181;
+    color: #9b2c2c;
+  }
+  
+  .custom-list-item:hover .remove-button {
+    opacity: 1;
+    transform: scale(1);
+  }
+  
+  .user-checkbox {
+    margin-left: 12px;
+  }
+  
+  .cancel-button,
+  .create-button {
+    border-radius: 8px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  
+  .cancel-button {
+    background: #e2e8f0;
+    border: none;
+    color: #4a5568;
+  }
+  
+  .cancel-button:hover {
+    background: #cbd5e0;
+    color: #2d3748;
+  }
+  
+  .create-button {
+    background: #4299e1;
+    border: none;
+  }
+  
+  .create-button:hover:not(:disabled) {
+    background: #3182ce;
+    transform: translateY(-1px);
+  }
+  
+  .create-button:disabled {
+    background: #90cdf4;
+    cursor: not-allowed;
+  }
+  
+  /* Custom scrollbar */
+  .custom-list-group::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-list-group::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
+  }
+  
+  .custom-list-group::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+  }
+  
+  .custom-list-group::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
+  }
