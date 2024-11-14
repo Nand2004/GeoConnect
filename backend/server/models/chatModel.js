@@ -51,7 +51,6 @@ const chatSchema = new mongoose.Schema(
         role: {
           type: String,
           enum: ["member", "admin"],
-          default: "member",
         },
         joinedAt: {
           type: Date,

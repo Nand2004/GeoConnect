@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Chat = require("../../models/chatModel");
-const User = require("../../models/userModel"); 
+const User = require("../../models/userModel");
 
 
 router.post("/chatCreateChat", async (req, res) => {
@@ -13,7 +13,7 @@ router.post("/chatCreateChat", async (req, res) => {
     if (!users || users.length < 2) {
       return res.status(400).json({ message: "A chat requires at least 2 users." });
     }
-    
+
     // Check if all provided user IDs exist in the database
     const existingUsers = await User.find({ _id: { $in: users } });
     if (existingUsers.length !== users.length) {
@@ -33,26 +33,33 @@ router.post("/chatCreateChat", async (req, res) => {
 
     // Check if a direct chat already exists between the two users
     if (chatType === "direct" && sortedUsers.length === 2) {
-      chat = await Chat.findOne({ 
+      chat = await Chat.findOne({
         "users.userId": { $all: sortedUsers }, // Corrected query structure
-        chatType: "direct" 
+        chatType: "direct"
       });
     }
     else if (chatType === "group") {
-      chat = await Chat.findOne({ 
-        "users.userId": { $all: sortedUsers }, 
+      chat = await Chat.findOne({
+        "users.userId": { $all: sortedUsers },
         chatType: "group",
         users: { $size: sortedUsers.length } // Ensure that the user count matches
       });
     }
-    
+
 
     // If no existing direct chat or it's a group chat, create a new one
     if (!chat) {
-      chat = new Chat({ 
-        users: sortedUsers.map(user => ({ userId: user })), 
-        chatType, 
-        chatName: chatType === "group" ? chatName : "" 
+      // Assign 'admin' to the creator (first user) and 'member' to the rest
+      const chatUsers = sortedUsers.map((user, index) => ({
+        userId: user,
+        role: index === 0 ? "admin" : "member", // First user gets "admin"
+      }));
+
+      // Create a new chat object with the assigned roles
+      chat = new Chat({
+        users: chatUsers,
+        chatType,
+        chatName: chatType === "group" ? chatName : "" // Only for group chats
       });
       await chat.save();
     }
