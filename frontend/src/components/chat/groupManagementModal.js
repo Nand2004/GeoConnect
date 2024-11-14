@@ -20,7 +20,13 @@ const GroupManagementModal = ({
     const fetchGroupUsers = async () => {
       try {
         const response = await axios.get(`http://localhost:8081/chat/chatGetByChatId/${chatId}`);
-        setGroupUsers(response.data.users);
+        const chatWithUsernames = await Promise.all(
+          response.data.users.map(async (user) => {
+            const usernameResponse = await axios.get(`http://localhost:8081/user/getUsernameByUserId/${user.userId}`);
+            return { userId: user.userId, username: usernameResponse.data.username };
+          })
+        );
+        setGroupUsers(chatWithUsernames);
       } catch (error) {
         console.error('Error fetching group members:', error);
         setError('Error fetching group members.');
@@ -100,7 +106,6 @@ const GroupManagementModal = ({
               key={user.userId}
               className="d-flex justify-content-between align-items-center"
             >
-              {/* Use `user.username` instead of `user.name` */}
               {user.username || user.userId}
               {user.userId !== currentUser.id && (
                 <Button
