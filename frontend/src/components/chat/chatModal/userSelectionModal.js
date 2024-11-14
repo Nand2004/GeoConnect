@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Modal, Form, Button, ListGroup } from "react-bootstrap";
-import { BsSearch, BsPeople, BsPersonPlus, BsXLg } from "react-icons/bs";
+import { BsSearch, BsPeople, BsPersonPlus, BsXLg, BsCheckCircleFill } from "react-icons/bs";
 import "./userSelectionModal.css";
 
 const UserSelectionModal = ({
@@ -17,13 +17,12 @@ const UserSelectionModal = ({
   handleUserSelect,
   handleCreateChat,
 }) => {
-  // Add debounced search effect
   useEffect(() => {
     const debounceSearch = setTimeout(() => {
       if (search.trim()) {
         handleSearch();
       }
-    }, 300); // 300ms delay
+    }, 300);
 
     return () => clearTimeout(debounceSearch);
   }, [search, handleSearch]);
@@ -80,26 +79,22 @@ const UserSelectionModal = ({
           <div className="section-container mb-4">
             <h5 className="section-title">
               <BsPersonPlus className="me-2 mb-1" />
-              Selected Users ({selectedUsers.length})
+              Selected ({selectedUsers.length})
             </h5>
-            <ListGroup className="custom-list-group">
+            <div className="selected-users-container">
               {selectedUsers.map((user) => (
-                <ListGroup.Item key={user._id} className="custom-list-item">
-                  <div className="user-avatar">
-                    {user.username[0].toUpperCase()}
-                  </div>
-                  <span className="user-name">{user.username}</span>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    className="remove-button"
+                <div key={user._id} className="selected-user-tag">
+                  <div className="tag-avatar">{user.username[0].toUpperCase()}</div>
+                  <span className="tag-name">{user.username}</span>
+                  <button
+                    className="tag-remove"
                     onClick={() => handleUserSelect(user)}
                   >
-                    <BsXLg />
-                  </Button>
-                </ListGroup.Item>
+                    <BsXLg size={12} />
+                  </button>
+                </div>
               ))}
-            </ListGroup>
+            </div>
           </div>
         )}
 
@@ -107,32 +102,33 @@ const UserSelectionModal = ({
           <div className="section-container">
             <h5 className="section-title">
               <BsSearch className="me-2 mb-1" />
-              Search Results ({searchResults.length})
+              Results ({searchResults.length})
             </h5>
             <ListGroup className="custom-list-group">
-              {searchResults.map((user) => (
-                <ListGroup.Item
-                  key={user._id}
-                  className="custom-list-item search-result-item"
-                  onClick={() => handleUserSelect(user)}
-                >
-                  <div className="item-content">
+              {searchResults.map((user) => {
+                const isSelected = selectedUsers.some(
+                  (selected) => selected._id === user._id
+                );
+                return (
+                  <ListGroup.Item
+                    key={user._id}
+                    className={`custom-list-item ${isSelected ? 'selected' : ''}`}
+                    onClick={() => handleUserSelect(user)}
+                  >
                     <div className="user-avatar">
                       {user.username[0].toUpperCase()}
                     </div>
                     <span className="user-name">{user.username}</span>
-                  </div>
-                  <Form.Check
-                    type="checkbox"
-                    className="user-checkbox"
-                    checked={selectedUsers.some(
-                      (selected) => selected._id === user._id
-                    )}
-                    onChange={() => {}}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </ListGroup.Item>
-              ))}
+                    <div className="selection-indicator">
+                      {isSelected ? (
+                        <BsCheckCircleFill className="check-icon" />
+                      ) : (
+                        <div className="select-circle" />
+                      )}
+                    </div>
+                  </ListGroup.Item>
+                );
+              })}
             </ListGroup>
           </div>
         )}
