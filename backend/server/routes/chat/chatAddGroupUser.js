@@ -1,27 +1,26 @@
 // routes/chat/chatGroupAddUser.js
-//POST
-// Adds a user to a group chat.
-
+// POST: Adds a user to a group chat by userId.
 
 const express = require("express");
 const router = express.Router();
 const Chat = require("../../models/chatModel");
 
-// Route to add a user to a group chat
+// Route to add a user to a group chat by userId
 router.post("/chatAddGroupUser/:chatId", async (req, res) => {
   const { chatId } = req.params;
-  const { userId, role = "member" } = req.body;
+  const { userId } = req.body;
 
   try {
+    // Find the chat by chatId
     const chat = await Chat.findById(chatId);
-
     if (!chat) {
       return res.status(404).json({ message: "Chat not found" });
     }
 
-    // Add the user only if they aren't already in the chat
+    // Check if the user is already in the chat
     if (!chat.users.find(user => user.userId === userId)) {
-      chat.users.push({ userId, role, joinedAt: new Date() });
+      // Add the user to the chat
+      chat.users.push({ userId, joinedAt: new Date() });
       await chat.save();
     }
 

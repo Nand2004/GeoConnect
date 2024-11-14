@@ -10,6 +10,7 @@ import { MdOutlineGroup } from "react-icons/md";
 import { BsSend, BsPlus, BsPeople, BsTrash, BsImage } from "react-icons/bs";
 import { useLocation } from 'react-router-dom';
 import ImageEnlarged from './imageEnlarged';
+import GroupManagementModal from './groupManagementModal';
 
 function Chat() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -33,6 +34,31 @@ function Chat() {
   const [groupName, setGroupName] = useState("");
   const [chatMode, setChatMode] = useState("direct");
   const [enlargedImage, setEnlargedImage] = useState(null);
+
+
+  const [showGroupManagementModal, setShowGroupManagementModal] = useState(false);
+  const [groupUsers, setGroupUsers] = useState([]);
+
+  const handleGroupManagementModalOpen = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8081/chat/chatGetByChatId/${chatId}`
+      );
+      setGroupUsers(response.data.users);
+      setShowGroupManagementModal(true);
+    } catch (error) {
+      console.error('Error fetching group members:', error);
+      setError('Error fetching group members.');
+    }
+  };
+
+  const handleUserRemoved = (user) => {
+    setGroupUsers(prevUsers => prevUsers.filter(u => u._id !== user._id));
+  };
+
+  const handleUserAdded = (user) => {
+    setGroupUsers(prevUsers => [...prevUsers, user]);
+  };
 
 
   useEffect(() => {
@@ -548,6 +574,17 @@ function Chat() {
                           .join(", ")
                       )}
                     </h5>
+                    <Button onClick={handleGroupManagementModalOpen}>Manage Group</Button>
+
+      <GroupManagementModal
+        show={showGroupManagementModal}
+        onHide={() => setShowGroupManagementModal(false)}
+        chatId={chatId}
+        currentUser={currentUser}
+        groupUsers={groupUsers}
+        onUserRemoved={handleUserRemoved}
+        onUserAdded={handleUserAdded}
+      />
                   </Card.Header>
                   <Card.Body className="d-flex flex-column" style={{ height: 'calc(100% - 160px)' }}>
                     <div className="overflow-auto flex-grow-1">
