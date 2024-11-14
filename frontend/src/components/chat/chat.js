@@ -9,7 +9,7 @@ import { MdOutlineGroup, MdModeEdit } from "react-icons/md";
 import { BsSend, BsPlus, BsPeople, BsTrash, BsImage } from "react-icons/bs";
 import { useLocation } from 'react-router-dom';
 import ImageEnlarged from './imageEnlarged';
-import GroupManagementModal from './groupManagementModal';
+import GroupManagementModal from './groupManagement/groupManagementModal';
 import UserSelectionModal from './chatModal/userSelectionModal';
 
 function Chat() {
