@@ -6,7 +6,7 @@ import { io } from "socket.io-client";
 import getUserInfo from "../../utilities/decodeJwt";
 import "./chat.css";
 import UserSelectionModal from "./userSelectionModal"; // Import the modal
-import { MdOutlineGroup } from "react-icons/md";
+import { MdOutlineGroup, MdModeEdit } from "react-icons/md";
 import { BsSend, BsPlus, BsPeople, BsTrash, BsImage } from "react-icons/bs";
 import { useLocation } from 'react-router-dom';
 import ImageEnlarged from './imageEnlarged';
@@ -566,6 +566,7 @@ function Chat() {
                         <>
                           {chatHistory.find((chat) => chat._id === chatId)?.chatName || "Unnamed Group"}
                           <MdOutlineGroup />
+                          <Button style={{color: 'black', size: '20px'}} onClick={handleGroupManagementModalOpen}> <MdModeEdit className="ms-2" /> </Button>
                         </>
                       ) : (
                         chatHistory
@@ -574,17 +575,6 @@ function Chat() {
                           .join(", ")
                       )}
                     </h5>
-                    <Button onClick={handleGroupManagementModalOpen}>Manage Group</Button>
-
-      <GroupManagementModal
-        show={showGroupManagementModal}
-        onHide={() => setShowGroupManagementModal(false)}
-        chatId={chatId}
-        currentUser={currentUser}
-        groupUsers={groupUsers}
-        onUserRemoved={handleUserRemoved}
-        onUserAdded={handleUserAdded}
-      />
                   </Card.Header>
                   <Card.Body className="d-flex flex-column" style={{ height: 'calc(100% - 160px)' }}>
                     <div className="overflow-auto flex-grow-1">
@@ -607,7 +597,7 @@ function Chat() {
                                         alt={attachment.name}
                                         className="rounded img-fluid"
                                         style={{ maxHeight: '200px' }}
-                                        onClick={() => setEnlargedImage(attachment.type)} 
+                                        onClick={() => setEnlargedImage(attachment.type)}
                                       />
                                     </div>
                                   ))}
@@ -702,6 +692,16 @@ function Chat() {
         handleSearch={handleSearch}
         handleUserSelect={handleUserSelect}
         handleCreateChat={handleCreateChat}
+      />
+
+      <GroupManagementModal
+        show={showGroupManagementModal}
+        onHide={() => setShowGroupManagementModal(false)}
+        chatId={chatId}
+        currentUser={currentUser}
+        groupUsers={groupUsers}
+        onUserRemoved={handleUserRemoved}
+        onUserAdded={handleUserAdded}
       />
 
       {/* Toast Notification */}
