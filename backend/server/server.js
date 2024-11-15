@@ -24,7 +24,7 @@ dbConnection();
 // Middleware
 app.use(cors({ 
   origin: ['http://localhost:3000', 'http://localhost:8096'],
-  methods: ["GET", "POST", "DELETE"],
+  methods: ["GET", "POST", "DELETE", "PUT"],
   credentials: true
 }));
 app.use(express.json());
@@ -39,8 +39,6 @@ app.use('/user', require('./routes/user/userDeleteAll'));
 app.use('/user', require('./routes/user/userSearchUser'));
 app.use('/user', require('./routes/user/userGetUsernameByUserId'));
 app.use('/user', require('./routes/user/userGetProfileImage'));
-
-
 
 // Location routes 
 app.use('/user', require('./routes/location/locationUpdate'));
@@ -66,12 +64,21 @@ app.use('/chat', require('./routes/chat/chatDeleteAll'));
 app.use('/chat', require('./routes/chat/chatGetByUserId'));
 app.use('/chat', require('./routes/chat/chatDeleteChat'));
 
-// // Image routes
-
+// Image routes
 app.use('/image', require('./routes/image/createImage'));
 app.use('/image', require('./routes/image/deleteImage'));
 app.use('/image', require('./routes/image/profileImageUpload'));
 app.use('/image', require('./routes/image/profileImageRemove'));
+
+//Event routes
+app.use('/event', require('./routes/event/createEvent'));
+app.use('/event', require('./routes/event/deleteEvent'));
+app.use('/event', require('./routes/event/getEvent'));
+app.use('/event', require('./routes/event/getNearbyEvent'));
+app.use('/event', require('./routes/event/joinEvent'));
+app.use('/event', require('./routes/event/leaveEvent'));
+app.use('/event', require('./routes/event/updateEvent'));
+app.use('/event', require('./routes/event/deleteAllEvents'));
 
 // Serve static files from React app's build folder
 app.use(express.static(path.join(__dirname, 'build')));

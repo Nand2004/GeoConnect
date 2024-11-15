@@ -68,6 +68,11 @@ const chatSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    event: { // New field for associating the chat with an event
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Event", // Reference to the Event model
+      default: null, // Default is null for regular chats
+    },
   },
   {
     timestamps: true, // Includes createdAt and updatedAt fields
