@@ -70,7 +70,7 @@ const ChatButton = ({ targetUser, currentUserId, onSuccess, onError }) => {
     <button
       onClick={initializeChat}
       disabled={isLoading}
-      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-indigo-400"
+      className="flex items-center gap-2 px-4 py-20  "
     >
       {isLoading ? (
         <Loader2 className="animate-spin" size={20} />
