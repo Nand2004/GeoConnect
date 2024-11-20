@@ -18,7 +18,7 @@ const NavigationBar = () => {
 
   const navLinks = [
     { href: "/privateUserProfile", label: "Profile" },
-    { href: "/geoLocation", label: "Location" },
+    { href: "/event", label: "Event" },
     { href: "/findUsersNearby", label: "Users Nearby" },
     { href: "/chat", label: "Chat" },
   ];

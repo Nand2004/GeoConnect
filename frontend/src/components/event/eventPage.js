@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
+import ChatButton from '../chat/chatButton';
 import { 
   FaCalendarPlus, 
   FaMapMarkerAlt, 
@@ -137,7 +138,7 @@ const EventPage = () => {
           coordinates: [location.longitude, location.latitude]
         },
         creatorId: currentUser.id,
-        dateTime: new Date(newEventForm.dateTime).toISOString()
+        dateTime: new Date().toISOString() // Use current time automatically
       };
 
       await axios.post('http://localhost:8081/event/createEvent/', eventData);
@@ -380,13 +381,7 @@ const EventPage = () => {
                 <option value="Concert">Concert</option>
                 <option value="Other">Other</option>
               </select>
-              <input
-                type="datetime-local"
-                value={newEventForm.dateTime}
-                onChange={(e) => setNewEventForm({...newEventForm, dateTime: e.target.value})}
-                style={styles.formInput}
-                required
-              />
+              
               <div style={styles.modalButtons}>
                 <button 
                   type="submit" 
