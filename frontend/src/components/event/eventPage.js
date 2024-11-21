@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
-import EditEventModal from './editEventModal';
+import EditEventModal from './eventModals/editEventModal';
 import ChatButton from '../chat/chatButton';
-import styles from './styles/eventPageStyles'; 
-import mapStyles from './styles/mapStyles'; 
-
+import styles from './styles/eventPageStyles';
+import mapStyles from './styles/mapStyles';
+import AttendeesModal from './eventModals/attendeesModal';
 
 import {
   FaCalendarPlus,
@@ -41,6 +41,7 @@ const EventPage = () => {
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedEventForEdit, setSelectedEventForEdit] = useState(null);
+  const [isAttendeesModalOpen, setIsAttendeesModalOpen] = useState(false);
 
   const openEditModal = (event) => {
     setSelectedEventForEdit(event);
@@ -266,12 +267,21 @@ const EventPage = () => {
                       event.location.coordinates[0]
                     ).toFixed(0)}m away
                   </div>
-                  <div style={styles.eventDetailItem}>
+                  <div
+                    style={{
+                      ...styles.eventDetailItem,
+                      cursor: 'pointer'
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedEvent(event);
+                      setIsAttendeesModalOpen(true);
+                    }}
+                  >
                     <FaUsers style={styles.detailIcon} />
                     {event.attendees.length} Attendees
                   </div>
                 </div>
-
                 {/* Conditional Join/Leave Button */}
                 {event.creatorId !== currentUser.id && (
                   <div style={styles.attendeeActions}>
@@ -393,9 +403,6 @@ const EventPage = () => {
           </div>
         )}
       </div>
-
-
-
       {/* Create Event Modal */}
       {isCreateModalOpen && (
         <div style={styles.modalOverlay}>
@@ -448,7 +455,17 @@ const EventPage = () => {
             </form>
           </div>
         </div>
+
       )}
+
+      {/* Attendees Modal */}
+      {isAttendeesModalOpen && selectedEvent && (
+        <AttendeesModal
+          attendees={selectedEvent.attendees}
+          onClose={() => setIsAttendeesModalOpen(false)}
+        />
+      )}
+
     </div>
   );
 
