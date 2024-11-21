@@ -256,6 +256,7 @@ const EventPage = () => {
                 <div style={styles.eventCategory}>{event.category}</div>
               </div>
 
+
               <div style={styles.eventCardContent}>
                 <div style={styles.eventDetails}>
                   <div style={styles.eventDetailItem}>
@@ -310,13 +311,9 @@ const EventPage = () => {
                       </button>
                     )}
                   </div>
-
                 )}
-
               </div>
-
             </div>
-
           ))}
         </div>
 
@@ -463,6 +460,7 @@ const EventPage = () => {
 {isAttendeesModalOpen && selectedEvent && (
   <AttendeesModal
     eventId={selectedEvent._id}
+    currentUserId={currentUser.id} 
     onClose={() => setIsAttendeesModalOpen(false)}
   />
 )}

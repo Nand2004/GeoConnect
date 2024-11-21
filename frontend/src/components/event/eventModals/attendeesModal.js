@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaUsers, FaTimes } from 'react-icons/fa';
 import axios from 'axios';
+import ChatButton from '../../chat/chatButton'; // Adjust the import path based on your file structure
 
 const modalStyles = {
   modalOverlay: {
@@ -94,6 +95,11 @@ const modalStyles = {
     fontSize: '0.9rem',
     color: '#6B7280',
   },
+  chatButtonContainer: {
+    marginLeft: 'auto',
+    display: 'flex',
+    alignItems: 'center',
+  },
   noAttendees: {
     textAlign: 'center',
     color: '#6B7280',
@@ -114,6 +120,17 @@ const modalStyles = {
     backgroundColor: '#FEE2E2',
     borderRadius: '8px',
     margin: '20px 0',
+  },
+  notification: {
+    position: 'fixed',
+    bottom: '20px',
+    right: '20px',
+    padding: '12px 20px',
+    borderRadius: '8px',
+    backgroundColor: '#4F46E5',
+    color: '#fff',
+    zIndex: 1100,
+    animation: 'fadeOut 3s forwards',
   }
 };
 
@@ -126,10 +143,11 @@ const avatarGradients = [
   'linear-gradient(135deg, #06B6D4, #3B82F6)',
 ];
 
-const AttendeesModal = ({ eventId, onClose }) => {
+const AttendeesModal = ({ eventId, currentUserId, onClose }) => {
   const [eventDetails, setEventDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [notification, setNotification] = useState('');
 
   useEffect(() => {
     const fetchEventDetails = async () => {
@@ -161,6 +179,16 @@ const AttendeesModal = ({ eventId, onClose }) => {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const handleChatSuccess = (message) => {
+    setNotification(message);
+    setTimeout(() => setNotification(''), 3000);
+  };
+
+  const handleChatError = (message) => {
+    setError(message);
+    setTimeout(() => setError(''), 3000);
   };
 
   return (
@@ -208,6 +236,16 @@ const AttendeesModal = ({ eventId, onClose }) => {
                     Joined: {formatJoinDate(attendee.joinedAt)}
                   </div>
                 </div>
+                {attendee.userId._id !== currentUserId && (
+                  <div style={modalStyles.chatButtonContainer}>
+                    <ChatButton
+                      targetUser={attendee.userId}
+                      currentUserId={currentUserId}
+                      onSuccess={handleChatSuccess}
+                      onError={handleChatError}
+                    />
+                  </div>
+                )}
               </div>
             ))
           ) : (
@@ -217,6 +255,11 @@ const AttendeesModal = ({ eventId, onClose }) => {
           )}
         </div>
       </div>
+      {notification && (
+        <div style={modalStyles.notification}>
+          {notification}
+        </div>
+      )}
     </div>
   );
 };
