@@ -1,4 +1,3 @@
-// AttendeesModal.js
 import React, { useState, useEffect } from 'react';
 import { FaUsers, FaTimes } from 'react-icons/fa';
 import axios from 'axios';
@@ -53,9 +52,6 @@ const modalStyles = {
     justifyContent: 'center',
     borderRadius: '8px',
     transition: 'all 0.2s',
-    ':hover': {
-      backgroundColor: '#F3F4F6',
-    }
   },
   attendeesList: {
     maxHeight: '400px',
@@ -71,10 +67,6 @@ const modalStyles = {
     backgroundColor: '#F9FAFB',
     transition: 'transform 0.2s, box-shadow 0.2s',
     cursor: 'default',
-    ':hover': {
-      transform: 'translateY(-2px)',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
-    }
   },
   attendeeAvatar: {
     width: '48px',
@@ -98,7 +90,7 @@ const modalStyles = {
     color: '#111827',
     marginBottom: '4px',
   },
-  attendeeUsername: {
+  attendeeJoinDate: {
     fontSize: '0.9rem',
     color: '#6B7280',
   },
@@ -114,10 +106,17 @@ const modalStyles = {
     textAlign: 'center',
     padding: '20px',
     color: '#4F46E5',
+  },
+  error: {
+    textAlign: 'center',
+    color: '#EF4444',
+    padding: '20px',
+    backgroundColor: '#FEE2E2',
+    borderRadius: '8px',
+    margin: '20px 0',
   }
 };
 
-// Array of gradients for avatars
 const avatarGradients = [
   'linear-gradient(135deg, #FF6B6B, #FFE66D)',
   'linear-gradient(135deg, #4F46E5, #06B6D4)',
@@ -127,43 +126,41 @@ const avatarGradients = [
   'linear-gradient(135deg, #06B6D4, #3B82F6)',
 ];
 
-const AttendeesModal = ({ attendees, onClose }) => {
-  const [attendeeDetails, setAttendeeDetails] = useState([]);
+const AttendeesModal = ({ eventId, onClose }) => {
+  const [eventDetails, setEventDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchAttendeeDetails = async () => {
+    const fetchEventDetails = async () => {
       try {
         setLoading(true);
-        // Fetch details for all attendees in parallel
-        const details = await Promise.all(
-          attendees.map(async (attendees) => {
-            try {
-              const response = await axios.get(`http://localhost:8081/user/getUserById/${attendees.userId}`);
-              return response.data;
-            } catch (error) {
-              console.error(`Error fetching user ${attendees.userId}:`, error);
-              return { username: 'Unknown User', _id: attendees.userId };
-            }
-          })
-        );
-        setAttendeeDetails(details);
+        setError(null);
+        const response = await axios.get(`http://localhost:8081/event/getEvent/${eventId}`);
+        setEventDetails(response.data);
       } catch (error) {
-        console.error('Error fetching attendee details:', error);
+        console.error('Error fetching event details:', error);
+        setError('Failed to load attendees. Please try again later.');
       } finally {
         setLoading(false);
       }
     };
 
-    if (attendees && attendees.length > 0) {
-      fetchAttendeeDetails();
-    } else {
-      setLoading(false);
+    if (eventId) {
+      fetchEventDetails();
     }
-  }, [attendees]);
+  }, [eventId]);
 
   const getAvatarGradient = (index) => {
     return avatarGradients[index % avatarGradients.length];
+  };
+
+  const formatJoinDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   return (
@@ -172,7 +169,9 @@ const AttendeesModal = ({ attendees, onClose }) => {
         <div style={modalStyles.header}>
           <div style={modalStyles.title}>
             <FaUsers size={24} />
-            <span>Event Attendees ({attendees.length})</span>
+            <span>
+              Event Attendees ({eventDetails?.attendees?.length || 0})
+            </span>
           </div>
           <button 
             style={modalStyles.closeButton}
@@ -188,26 +187,26 @@ const AttendeesModal = ({ attendees, onClose }) => {
             <div style={modalStyles.loadingState}>
               Loading attendees...
             </div>
-          ) : attendeeDetails.length > 0 ? (
-            attendeeDetails.map((user, index) => (
-              <div key={user._id} style={modalStyles.attendeeItem}>
+          ) : error ? (
+            <div style={modalStyles.error}>{error}</div>
+          ) : eventDetails?.attendees?.length > 0 ? (
+            eventDetails.attendees.map((attendee, index) => (
+              <div key={attendee._id} style={modalStyles.attendeeItem}>
                 <div 
                   style={{
                     ...modalStyles.attendeeAvatar,
                     background: getAvatarGradient(index),
                   }}
                 >
-                  {user.username ? user.username.charAt(0).toUpperCase() : 'U'}
+                  {attendee.userId.username.charAt(0).toUpperCase()}
                 </div>
                 <div style={modalStyles.attendeeInfo}>
                   <div style={modalStyles.attendeeName}>
-                    {user.username || 'Unknown User'}
+                    {attendee.userId.username}
                   </div>
-                  {user.email && (
-                    <div style={modalStyles.attendeeUsername}>
-                      {user.email}
-                    </div>
-                  )}
+                  <div style={modalStyles.attendeeJoinDate}>
+                    Joined: {formatJoinDate(attendee.joinedAt)}
+                  </div>
                 </div>
               </div>
             ))

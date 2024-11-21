@@ -272,6 +272,8 @@ const EventPage = () => {
                       ...styles.eventDetailItem,
                       cursor: 'pointer'
                     }}
+
+                    
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedEvent(event);
@@ -458,13 +460,12 @@ const EventPage = () => {
 
       )}
 
-      {/* Attendees Modal */}
-      {isAttendeesModalOpen && selectedEvent && (
-        <AttendeesModal
-          attendees={selectedEvent.attendees}
-          onClose={() => setIsAttendeesModalOpen(false)}
-        />
-      )}
+{isAttendeesModalOpen && selectedEvent && (
+  <AttendeesModal
+    eventId={selectedEvent._id}
+    onClose={() => setIsAttendeesModalOpen(false)}
+  />
+)}
 
     </div>
   );
