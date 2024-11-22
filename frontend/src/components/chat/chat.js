@@ -6,6 +6,8 @@ import { io } from "socket.io-client";
 import getUserInfo from "../../utilities/decodeJwt";
 import "./chat.css";
 import { useLocation } from "react-router-dom";
+import { FaUser } from 'react-icons/fa';
+
 
 //Chat Components
 import ChatSidebar from "./chatComponents/chatSidebar";
@@ -13,7 +15,7 @@ import ChatWindow from "./chatComponents/chatWindow";
 import ImageEnlarged from "./imageChatComponents/imageEnlarged";
 import GroupManagementModal from "./groupManagement/groupManagementModal";
 import UserSelectionModal from "./chatModal/userSelectionModal";
-import NotificationToast from "./notificationToast/notifactionToast";
+import NotificationToast from "./notificationToast/notificationToast";
 
 function Chat() {
   const [currentUser, setCurrentUser] = useState(null);
