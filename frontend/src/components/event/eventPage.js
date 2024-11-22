@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import EditEventModal from './eventModals/editEventModal';
-import ChatButton from '../chat/chatButton';
+import GroupChatButton from '../chat/chatButton/groupChatButton';
 import styles from './styles/eventPageStyles';
 import mapStyles from './styles/mapStyles';
 import AttendeesModal from './eventModals/attendeesModal';
@@ -274,7 +274,7 @@ const EventPage = () => {
                       cursor: 'pointer'
                     }}
 
-                    
+
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedEvent(event);
@@ -288,6 +288,15 @@ const EventPage = () => {
                 {/* Conditional Join/Leave Button */}
                 {event.creatorId !== currentUser.id && (
                   <div style={styles.attendeeActions}>
+
+                    <GroupChatButton
+                      currentUserId={currentUser.id}
+                      eventName={event.name}
+                      attendees={event.attendees}
+                      onSuccess={(message) => setMessage(message)}
+                      onError={(error) => setError(error)}
+                    />
+
                     <button
                       onClick={() => openEditModal(event)}
                       style={styles.editButton}
@@ -457,13 +466,13 @@ const EventPage = () => {
 
       )}
 
-{isAttendeesModalOpen && selectedEvent && (
-  <AttendeesModal
-    eventId={selectedEvent._id}
-    currentUserId={currentUser.id} 
-    onClose={() => setIsAttendeesModalOpen(false)}
-  />
-)}
+      {isAttendeesModalOpen && selectedEvent && (
+        <AttendeesModal
+          eventId={selectedEvent._id}
+          currentUserId={currentUser.id}
+          onClose={() => setIsAttendeesModalOpen(false)}
+        />
+      )}
 
     </div>
   );

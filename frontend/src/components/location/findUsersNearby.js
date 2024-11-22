@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import { FaMapMarkerAlt, FaUsers, FaSpinner, FaExclamationCircle, FaEnvelope, FaCompass, FaSearch } from 'react-icons/fa';
-import ChatButton from '../chat/chatButton';
+import ChatButton from '../chat/chatButton/chatButton';
 import getUserInfo from "../../utilities/decodeJwt";
 
 const FindUsersNearby = () => {

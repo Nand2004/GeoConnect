@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaUsers, FaTimes } from 'react-icons/fa';
 import axios from 'axios';
-import ChatButton from '../../chat/chatButton'; // Adjust the import path based on your file structure
+import ChatButton from '../../chat/chatButton/chatButton'; // Adjust the import path based on your file structure
 
 const modalStyles = {
   modalOverlay: {
