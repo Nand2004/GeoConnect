@@ -7,25 +7,14 @@ import styles from './styles/eventPageStyles';
 import mapStyles from './styles/mapStyles';
 import AttendeesModal from './eventModals/attendeesModal';
 
-import {
-  FaCalendarPlus,
-  FaMapMarkerAlt,
-  FaUsers,
-  FaSpinner,
-  FaExclamationCircle,
-  FaClockFa,
-  FaTag,
-  FaInfoCircle,
-  FaCheckCircle,
-  FaTimesCircle
-} from 'react-icons/fa';
+import { FaCalendarPlus, FaMapMarkerAlt, FaUsers, FaExclamationCircle, FaTag, FaInfoCircle, FaCheckCircle } from 'react-icons/fa';
 import getUserInfo from "../../utilities/decodeJwt";
 
 const EventPage = () => {
   // State variables
   const [location, setLocation] = useState({ latitude: null, longitude: null });
   const [nearbyEvents, setNearbyEvents] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState('');
   const [selectedEvent, setSelectedEvent] = useState(null);
