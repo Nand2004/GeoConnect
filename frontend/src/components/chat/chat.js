@@ -8,7 +8,7 @@ import "./chat.css";
 import { MdOutlineGroup, MdModeEdit } from "react-icons/md";
 import { BsSend, BsPlus, BsPeople, BsTrash, BsImage } from "react-icons/bs";
 import { useLocation } from 'react-router-dom';
-import ImageEnlarged from './extraChatComponents/imageEnlarged';
+import ImageEnlarged from './imageChatComponents/imageEnlarged';
 import GroupManagementModal from './groupManagement/groupManagementModal';
 import UserSelectionModal from './chatModal/userSelectionModal';
 
