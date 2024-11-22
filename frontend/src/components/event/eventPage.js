@@ -14,7 +14,7 @@ const EventPage = () => {
   // State variables
   const [location, setLocation] = useState({ latitude: null, longitude: null });
   const [nearbyEvents, setNearbyEvents] = useState([]);
-  const [setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState('');
   const [selectedEvent, setSelectedEvent] = useState(null);
