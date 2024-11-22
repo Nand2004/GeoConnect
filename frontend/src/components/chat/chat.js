@@ -13,6 +13,7 @@ import ChatWindow from "./chatComponents/chatWindow";
 import ImageEnlarged from "./imageChatComponents/imageEnlarged";
 import GroupManagementModal from "./groupManagement/groupManagementModal";
 import UserSelectionModal from "./chatModal/userSelectionModal";
+import NotificationToast from "./notificationToast/notifactionToast";
 
 function Chat() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -448,26 +449,6 @@ function Chat() {
     }
   }, [socket, chatId, currentUser]);
 
-  const NotificationToast = () => (
-    <Toast
-      className="toast-style"
-      onClose={() => setShowToast(false)}
-      show={showToast}
-      delay={3000}
-      autohide
-    >
-      <Toast.Header>
-        <strong className="me-auto">
-          Message from {currentNotification?.senderUsername}
-        </strong>
-        <small>
-          {new Date(currentNotification?.timestamp).toLocaleTimeString()}
-        </small>
-      </Toast.Header>
-      <Toast.Body>{currentNotification?.message}</Toast.Body>
-    </Toast>
-  );
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const messageText = e.target.message.value;
@@ -564,30 +545,11 @@ function Chat() {
         onUserAdded={handleUserAdded}
       />
 
-      {/* Toast Notification */}
-      <Toast
+      <NotificationToast
         show={showToast}
         onClose={() => setShowToast(false)}
-        delay={3000}
-        autohide
-        style={{
-          position: "fixed",
-          top: 20,
-          right: 20,
-          zIndex: 1000,
-        }}
-      >
-        <Toast.Header>
-          <strong className="me-auto">
-            Message from {currentNotification?.senderUsername}
-          </strong>
-          <small>
-            {currentNotification?.timestamp &&
-              new Date(currentNotification.timestamp).toLocaleTimeString()}
-          </small>
-        </Toast.Header>
-        <Toast.Body>{currentNotification?.message}</Toast.Body>
-      </Toast>
+        currentNotification={currentNotification}
+      />
 
       <ImageEnlarged
         image={enlargedImage}
