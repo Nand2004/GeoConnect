@@ -1,20 +1,68 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar, Nav, Container, Button } from 'react-bootstrap';
 import { FaMapMarkerAlt } from 'react-icons/fa';
-import getUserInfo from '../utilities/decodeJwt'; // Import your utility
+import getUserInfo from '../utilities/decodeJwt';
+import NotificationDropdown from './chat/notificationToast/notificationDropdown';
+import { io } from 'socket.io-client';
+import axios from 'axios';
 
 const NavigationBar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [socket, setSocket] = useState(null);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     const user = getUserInfo();
-    setIsLoggedIn(user && user.id); // Set logged-in state based on user info
+    setCurrentUser(user);
+    setIsLoggedIn(user && user.id);
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    const newSocket = io("http://localhost:8081");
+    setSocket(newSocket);
+    return () => newSocket.close();
+  }, []);
+
+  useEffect(() => {
+    if (socket && currentUser) {
+      const handleMessage = async (message) => {
+        if (message.sender !== currentUser.id) {
+          try {
+            const response = await axios.get(
+              `http://localhost:8081/user/getUsernameByUserId/${message.sender}`
+            );
+            const senderUsername = response.data.username;
+
+            const notification = {
+              id: Date.now(),
+              message: message.attachments?.length
+                ? "📎 Sent an image"
+                : message.message,
+              sender: message.sender,
+              senderUsername: senderUsername,
+              chatId: message.chatId,
+              timestamp: new Date().toISOString(),
+            };
+
+            setNotifications(prev => [...prev, notification]);
+          } catch (error) {
+            console.error("Error fetching sender info:", error);
+          }
+        }
+      };
+
+      socket.on("listeningMessage", handleMessage);
+      return () => {
+        socket.off("listeningMessage", handleMessage);
+      };
+    }
+  }, [socket, currentUser]);
 
   const navLinks = [
     { href: "/privateUserProfile", label: "Profile" },
@@ -22,6 +70,10 @@ const NavigationBar = () => {
     { href: "/findUsersNearby", label: "Users Nearby" },
     { href: "/chat", label: "Chat" },
   ];
+
+  const handleClearNotifications = () => {
+    setNotifications([]);
+  };
 
   return (
     <Navbar
@@ -49,13 +101,19 @@ const NavigationBar = () => {
         </Navbar.Toggle>
 
         <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="ms-auto" style={{ gap: '10px' }}>
+          <Nav className="ms-auto" style={{ gap: '10px', alignItems: 'center' }}>
             {isLoggedIn ? (
-              navLinks.map(({ href, label }) => (
-                <Nav.Link key={label} href={href} style={linkStyle}>
-                  {label}
-                </Nav.Link>
-              ))
+              <>
+                <NotificationDropdown 
+                  notifications={notifications}
+                  onNotificationsClear={handleClearNotifications}
+                />
+                {navLinks.map(({ href, label }) => (
+                  <Nav.Link key={label} href={href} style={linkStyle}>
+                    {label}
+                  </Nav.Link>
+                ))}
+              </>
             ) : (
               <Button variant="outline-light" href="/login" style={buttonStyle}>
                 Login
@@ -87,7 +145,7 @@ const NavigationBar = () => {
   );
 };
 
-// Styles
+// Styles (keep existing styles from previous implementation)
 const iconStyle = {
   fontSize: '28px',
   color: '#FFD700',
