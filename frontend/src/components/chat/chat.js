@@ -1,31 +1,30 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Button, Alert, Toast, Card } from "react-bootstrap";
+import { Toast } from "react-bootstrap";
 import axios from "axios";
 import { io } from "socket.io-client";
 import getUserInfo from "../../utilities/decodeJwt";
 import "./chat.css";
-import { MdOutlineGroup, MdModeEdit } from "react-icons/md";
-import { BsSend, BsPlus, BsPeople, BsTrash, BsImage } from "react-icons/bs";
-import { useLocation } from 'react-router-dom';
-import ImageEnlarged from './imageChatComponents/imageEnlarged';
-import GroupManagementModal from './groupManagement/groupManagementModal';
-import UserSelectionModal from './chatModal/userSelectionModal';
+import { useLocation } from "react-router-dom";
 
+//Chat Components
 import ChatSidebar from "./chatComponents/chatSidebar";
 import ChatWindow from "./chatComponents/chatWindow";
+import ImageEnlarged from "./imageChatComponents/imageEnlarged";
+import GroupManagementModal from "./groupManagement/groupManagementModal";
+import UserSelectionModal from "./chatModal/userSelectionModal";
 
 function Chat() {
   const [currentUser, setCurrentUser] = useState(null);
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");// eslint-disable-next-line
+  const [successMessage, setSuccessMessage] = useState(""); // eslint-disable-next-line
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [chatHistory, setChatHistory] = useState([]);
   const [socket, setSocket] = useState(null);
-  const [chatId, setChatId] = useState(null);// eslint-disable-next-line
+  const [chatId, setChatId] = useState(null); // eslint-disable-next-line
   const [notifications, setNotifications] = useState([]);
   const [showToast, setShowToast] = useState(false);
   const [currentNotification, setCurrentNotification] = useState(null);
@@ -38,8 +37,8 @@ function Chat() {
   const [chatMode, setChatMode] = useState("direct");
   const [enlargedImage, setEnlargedImage] = useState(null);
 
-
-  const [showGroupManagementModal, setShowGroupManagementModal] = useState(false);
+  const [showGroupManagementModal, setShowGroupManagementModal] =
+    useState(false);
   const [groupUsers, setGroupUsers] = useState([]);
 
   const handleGroupManagementModalOpen = async () => {
@@ -50,19 +49,18 @@ function Chat() {
       setGroupUsers(response.data.users);
       setShowGroupManagementModal(true);
     } catch (error) {
-      console.error('Error fetching group members:', error);
-      setError('Error fetching group members.');
+      console.error("Error fetching group members:", error);
+      setError("Error fetching group members.");
     }
   };
 
   const handleUserRemoved = (user) => {
-    setGroupUsers(prevUsers => prevUsers.filter(u => u._id !== user._id));
+    setGroupUsers((prevUsers) => prevUsers.filter((u) => u._id !== user._id));
   };
 
   const handleUserAdded = (user) => {
-    setGroupUsers(prevUsers => [...prevUsers, user]);
+    setGroupUsers((prevUsers) => [...prevUsers, user]);
   };
-
 
   useEffect(() => {
     const userInfo = getUserInfo();
@@ -97,7 +95,9 @@ function Chat() {
             data.map(async (chat) => {
               const usernames = await Promise.all(
                 chat.users.map(async (user) => {
-                  const response = await axios.get(`http://localhost:8081/user/getUsernameByUserId/${user.userId}`);
+                  const response = await axios.get(
+                    `http://localhost:8081/user/getUsernameByUserId/${user.userId}`
+                  );
                   return response.data.username;
                 })
               );
@@ -120,16 +120,16 @@ function Chat() {
     const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
     if (file && file.size > MAX_SIZE) {
-      setError('Image size must be less than 5MB');
+      setError("Image size must be less than 5MB");
       return;
     }
 
-    if (file && file.type.startsWith('image/')) {
+    if (file && file.type.startsWith("image/")) {
       setSelectedImage(file);
       const reader = new FileReader();
       reader.onload = (event) => {
         const imgPreview = event.target.result;
-        const previewElement = document.getElementById('imagePreview');
+        const previewElement = document.getElementById("imagePreview");
         if (previewElement) {
           previewElement.src = imgPreview;
         }
@@ -140,11 +140,10 @@ function Chat() {
 
   const clearImageSelection = () => {
     setSelectedImage(null);
-    if (document.getElementById('imagePreview')) {
-      document.getElementById('imagePreview').src = '';
+    if (document.getElementById("imagePreview")) {
+      document.getElementById("imagePreview").src = "";
     }
   };
-
 
   const handleSearch = async () => {
     if (!search) {
@@ -155,7 +154,9 @@ function Chat() {
       const { data } = await axios.get(
         `http://localhost:8081/user/userSearchUser?username=${search}`
       );
-      const filteredResults = data.filter(user => user._id !== currentUser.id);
+      const filteredResults = data.filter(
+        (user) => user._id !== currentUser.id
+      );
       setSearchResults(filteredResults);
       setError("");
     } catch {
@@ -164,8 +165,10 @@ function Chat() {
   };
 
   const handleUserSelect = (user) => {
-    if (selectedUsers.some(selected => selected._id === user._id)) {
-      setSelectedUsers(selectedUsers.filter(selected => selected._id !== user._id));
+    if (selectedUsers.some((selected) => selected._id === user._id)) {
+      setSelectedUsers(
+        selectedUsers.filter((selected) => selected._id !== user._id)
+      );
     } else {
       if (chatMode === "direct") {
         setSelectedUsers([user]); // Only one user for direct chat
@@ -179,13 +182,16 @@ function Chat() {
     if (!currentUser || !selectedUsers.length) return;
 
     try {
-      const userIds = [currentUser.id, ...selectedUsers.map(user => user._id)];
+      const userIds = [
+        currentUser.id,
+        ...selectedUsers.map((user) => user._id),
+      ];
       const isGroup = chatMode === "group" && selectedUsers.length > 1;
 
       const body = {
         chatType: isGroup ? "group" : "direct",
         users: userIds,
-        ...(isGroup && { chatName: groupName }) // Store the group name as chatName in the request body
+        ...(isGroup && { chatName: groupName }), // Store the group name as chatName in the request body
       };
 
       const response = await axios.post(
@@ -228,13 +234,17 @@ function Chat() {
       if (response.data && response.data.messages) {
         const loadedMessages = response.data.messages.map((msg) => ({
           userId: msg.sender,
-          message: msg.message || '',
+          message: msg.message || "",
           timestamp: msg.timestamp,
-          attachments: msg.attachments ? msg.attachments.map(attachment => ({
-            type: attachment,
-            name: attachment.split('/').pop(), // Extract filename from URL
-            mimeType: attachment.match(/\.(jpg|jpeg|png|gif)$/i) ? 'image/' + attachment.split('.').pop().toLowerCase() : 'application/octet-stream'
-          })) : []
+          attachments: msg.attachments
+            ? msg.attachments.map((attachment) => ({
+              type: attachment,
+              name: attachment.split("/").pop(), // Extract filename from URL
+              mimeType: attachment.match(/\.(jpg|jpeg|png|gif)$/i)
+                ? "image/" + attachment.split(".").pop().toLowerCase()
+                : "application/octet-stream",
+            }))
+            : [],
         }));
         setMessages(loadedMessages);
       } else {
@@ -250,12 +260,12 @@ function Chat() {
     try {
       // Input validation with better error handling
       if (!chatId || !currentUser?.id) {
-        setError('Chat session not found');
+        setError("Chat session not found");
         return;
       }
 
       if (!message?.trim() && !selectedImage) {
-        setError('Please provide a message or image');
+        setError("Please provide a message or image");
         return;
       }
 
@@ -263,8 +273,8 @@ function Chat() {
       const newMessage = {
         userId: currentUser.id,
         timestamp: new Date().toISOString(),
-        message: message?.trim() || '',
-        attachments: []
+        message: message?.trim() || "",
+        attachments: [],
       };
 
       // Handle image upload if present
@@ -272,30 +282,32 @@ function Chat() {
       if (selectedImage) {
         try {
           const formData = new FormData();
-          formData.append('image', selectedImage);
-          formData.append('name', `${currentUser.id}_${Date.now()}`);
+          formData.append("image", selectedImage);
+          formData.append("name", `${currentUser.id}_${Date.now()}`);
 
           const imageResponse = await axios.post(
-            'http://localhost:8081/image/createImage',
+            "http://localhost:8081/image/createImage",
             formData,
             {
               headers: {
-                'Content-Type': 'multipart/form-data',
+                "Content-Type": "multipart/form-data",
               },
             }
           );
 
           if (imageResponse.data && imageResponse.data.imageUri) {
             uploadedImageUri = imageResponse.data.imageUri;
-            newMessage.attachments = [{
-              type: uploadedImageUri,
-              name: selectedImage.name,
-              mimeType: selectedImage.type
-            }];
+            newMessage.attachments = [
+              {
+                type: uploadedImageUri,
+                name: selectedImage.name,
+                mimeType: selectedImage.type,
+              },
+            ];
           }
         } catch (imageError) {
-          console.error('Error uploading image:', imageError);
-          setError('Failed to upload image. Please try again.');
+          console.error("Error uploading image:", imageError);
+          setError("Failed to upload image. Please try again.");
           return;
         }
       }
@@ -306,37 +318,37 @@ function Chat() {
         {
           sender: currentUser.id,
           message: newMessage.message,
-          attachments: uploadedImageUri ? [uploadedImageUri] : []
+          attachments: uploadedImageUri ? [uploadedImageUri] : [],
         }
       );
 
       if (messageResponse.data) {
         // Update local messages state
-        setMessages(prevMessages => [...prevMessages, newMessage]);
+        setMessages((prevMessages) => [...prevMessages, newMessage]);
 
         // Emit socket event
         if (socket) {
-          socket.emit('sendingMessage', {
+          socket.emit("sendingMessage", {
             chatId,
             sender: currentUser.id,
             message: newMessage.message,
-            attachments: newMessage.attachments
+            attachments: newMessage.attachments,
           });
         }
 
         // Clear image preview and selection
         if (selectedImage) {
           setSelectedImage(null);
-          const previewElement = document.getElementById('imagePreview');
+          const previewElement = document.getElementById("imagePreview");
           if (previewElement) {
-            previewElement.src = '';
+            previewElement.src = "";
           }
         }
         return true; // Indicate successful message send
       }
     } catch (error) {
-      console.error('Error in handleSendMessage:', error);
-      setError(error.message || 'Error sending message. Please try again.');
+      console.error("Error in handleSendMessage:", error);
+      setError(error.message || "Error sending message. Please try again.");
       return false; // Indicate failed message send
     }
   };
@@ -345,7 +357,7 @@ function Chat() {
     e.stopPropagation();
     try {
       await axios.delete(`http://localhost:8081/chat/deleteChat/${chatId}`);
-      setChatHistory(prev => prev.filter(chat => chat._id !== chatId));
+      setChatHistory((prev) => prev.filter((chat) => chat._id !== chatId));
       if (chatId === currentUser?.id) {
         setSelectedUser(null);
         setMessages([]);
@@ -365,9 +377,9 @@ function Chat() {
   const handleChatSelect = async (chat) => {
     setSelectedUser(chat.users.find((user) => user.userId !== currentUser.id));
     setChatId(chat._id);
-    setUnreadCounts(prev => ({
+    setUnreadCounts((prev) => ({
       ...prev,
-      [chat._id]: 0
+      [chat._id]: 0,
     }));
     await loadMessages(chat._id);
   };
@@ -399,25 +411,27 @@ function Chat() {
             );
 
             const isUserInChat = chatResponse.data.users.some(
-              user => user.userId === currentUser.id
+              (user) => user.userId === currentUser.id
             );
 
             if (isUserInChat) {
-              setUnreadCounts(prev => ({
+              setUnreadCounts((prev) => ({
                 ...prev,
-                [message.chatId]: (prev[message.chatId] || 0) + 1
+                [message.chatId]: (prev[message.chatId] || 0) + 1,
               }));
 
               const notification = {
                 id: Date.now(),
-                message: message.attachments?.length ? '📎 Sent an image' : message.message,
+                message: message.attachments?.length
+                  ? "📎 Sent an image"
+                  : message.message,
                 sender: message.sender,
                 senderUsername: senderUsername,
                 chatId: message.chatId,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
               };
 
-              setNotifications(prev => [...prev, notification]);
+              setNotifications((prev) => [...prev, notification]);
               setCurrentNotification(notification);
               setShowToast(true);
             }
@@ -443,12 +457,14 @@ function Chat() {
       autohide
     >
       <Toast.Header>
-        <strong className="me-auto">Message from {currentNotification?.senderUsername}</strong>
-        <small>{new Date(currentNotification?.timestamp).toLocaleTimeString()}</small>
+        <strong className="me-auto">
+          Message from {currentNotification?.senderUsername}
+        </strong>
+        <small>
+          {new Date(currentNotification?.timestamp).toLocaleTimeString()}
+        </small>
       </Toast.Header>
-      <Toast.Body>
-        {currentNotification?.message}
-      </Toast.Body>
+      <Toast.Body>{currentNotification?.message}</Toast.Body>
     </Toast>
   );
 
@@ -461,20 +477,31 @@ function Chat() {
       if (success) {
         e.target.message.value = "";
         setSelectedImage(null);
-        const previewElement = document.getElementById('imagePreview');
+        const previewElement = document.getElementById("imagePreview");
         if (previewElement) {
-          previewElement.src = '';
+          previewElement.src = "";
         }
       }
     } catch (error) {
-      console.error('Error in handleSubmit:', error);
-      setError('Failed to send message');
+      console.error("Error in handleSubmit:", error);
+      setError("Failed to send message");
     }
   };
 
   return (
-    <div className="vh-100 pt-4" style={{ paddingTop: '60px', overflowY: 'auto' }}>
-      <div className="container-fluid h-100" style={{ height: '60vh', overflow: 'hidden', paddingTop: '55px', background: "linear-gradient(135deg, #0F2027, #203A43, #2C5364)" }}>
+    <div
+      className="vh-100 pt-4"
+      style={{ paddingTop: "60px", overflowY: "auto" }}
+    >
+      <div
+        className="container-fluid h-100"
+        style={{
+          height: "60vh",
+          overflow: "hidden",
+          paddingTop: "55px",
+          background: "linear-gradient(135deg, #0F2027, #203A43, #2C5364)",
+        }}
+      >
         <div className="row h-100">
           {/* Sidebar */}
           <div className="col-md-4 col-lg-3 h-100">
@@ -544,21 +571,28 @@ function Chat() {
         delay={3000}
         autohide
         style={{
-          position: 'fixed',
+          position: "fixed",
           top: 20,
           right: 20,
-          zIndex: 1000
+          zIndex: 1000,
         }}
       >
         <Toast.Header>
-          <strong className="me-auto">Message from {currentNotification?.senderUsername}</strong>
-          <small>{currentNotification?.timestamp && new Date(currentNotification.timestamp).toLocaleTimeString()}</small>
+          <strong className="me-auto">
+            Message from {currentNotification?.senderUsername}
+          </strong>
+          <small>
+            {currentNotification?.timestamp &&
+              new Date(currentNotification.timestamp).toLocaleTimeString()}
+          </small>
         </Toast.Header>
         <Toast.Body>{currentNotification?.message}</Toast.Body>
       </Toast>
 
-      <ImageEnlarged image={enlargedImage} onClose={() => setEnlargedImage(null)} />
-
+      <ImageEnlarged
+        image={enlargedImage}
+        onClose={() => setEnlargedImage(null)}
+      />
     </div>
   );
 }
