@@ -83,7 +83,7 @@ function ChatSidebar({
                 <Button
                   variant="link"
                   className="text-danger p-0"
-                  onClick={e => handleDeleteChat(e, chat._id)}
+                  onClick={e => handleDeleteChat(e, chat._id, chat)}
                 >
                   <BsTrash size={18} />
                 </Button>

@@ -356,21 +356,51 @@ function Chat() {
     }
   };
 
-  const handleDeleteChat = async (e, chatId) => {
+  const handleDeleteChat = async (e, chatId, chat) => {
     e.stopPropagation();
+    
     try {
-      await axios.delete(`http://localhost:8081/chat/deleteChat/${chatId}`);
-      setChatHistory((prev) => prev.filter((chat) => chat._id !== chatId));
-      if (chatId === currentUser?.id) {
-        setSelectedUser(null);
-        setMessages([]);
-        setChatId(null);
+      // Check if the chat is a group chat and has an event associated
+      if (chat.chatType === "group" && chat.event) {
+        // If it's an event-based group chat, remove the user from the event
+        await axios.post('http://localhost:8081/event/leaveEvent/', {
+          eventId: chat.event,
+          userId: currentUser?.id
+        });
+        
+        // Update local state to remove this chat from the user's view
+        setChatHistory((prev) => prev.filter((c) => c._id !== chatId));
+        
+        // If this was the currently selected chat, reset the chat view
+        if (chatId === currentUser?.id) {
+          setSelectedUser(null);
+          setMessages([]);
+          setChatId(null);
+        }
+        
+        setSuccessMessage("Left event chat successfully");
+      } else {
+        // For non-event chats, proceed with regular chat deletion
+        await axios.delete(`http://localhost:8081/chat/deleteChat/${chatId}`);
+        
+        // Update local state
+        setChatHistory((prev) => prev.filter((c) => c._id !== chatId));
+        
+        // Reset current chat if needed
+        if (chatId === currentUser?.id) {
+          setSelectedUser(null);
+          setMessages([]);
+          setChatId(null);
+        }
+        
+        setSuccessMessage("Chat deleted successfully");
       }
-      setSuccessMessage("Chat deleted successfully");
     } catch (error) {
-      console.error("Error deleting chat:", error);
-      setError("Error deleting chat");
+      console.error("Error processing chat action:", error);
+      setError(error.response?.data?.message || "Error processing chat action");
     }
+    
+    // Clear messages after 3 seconds
     setTimeout(() => {
       setSuccessMessage("");
       setError("");
