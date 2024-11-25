@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import EditEventModal from './eventModals/editEventModal';
-import GroupChatButton from '../chat/chatButton/groupChatButton';
+import EventChatButton from '../chat/chatButton/eventChatButton';
 import styles from './styles/eventPageStyles';
 import mapStyles from './styles/mapStyles';
 import AttendeesModal from './eventModals/attendeesModal';
@@ -274,16 +274,17 @@ const EventPage = () => {
                     {event.attendees.length} Attendees
                   </div>
                 </div>
+
                 {/* Conditional Join/Leave Button */}
                 {event.creatorId !== currentUser.id && (
                   <div style={styles.attendeeActions}>
-
-                    <GroupChatButton
+                    
+                    <EventChatButton
                       currentUserId={currentUser.id}
+                      eventId={event._id}
                       eventName={event.name}
-                      attendees={event.attendees}
-                      onSuccess={(message) => setMessage(message)}
-                      onError={(error) => setError(error)}
+                      attendees={event.attendees.map(userId => ({ userId }))}
+                      chatType="group"
                     />
 
                     <button
