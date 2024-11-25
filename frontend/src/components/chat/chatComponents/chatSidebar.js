@@ -3,10 +3,28 @@ import axios from "axios";
 
 import { Button, Card, Alert } from 'react-bootstrap';
 import { MdOutlineGroup } from 'react-icons/md';
-import {BsTrash } from 'react-icons/bs';
+import { BsTrash } from 'react-icons/bs';
+import { PlusIcon, UsersIcon } from 'lucide-react';
 
+// Native time formatting utility
+const formatRelativeTime = (date) => {
+  const now = new Date();
+  const diffSeconds = (now - new Date(date)) / 1000;
+  const diffMinutes = diffSeconds / 60;
+  const diffHours = diffMinutes / 60;
+  const diffDays = diffHours / 24;
 
-import { PlusIcon, UsersIcon, } from 'lucide-react';
+  if (diffSeconds < 60) return 'now';
+  if (diffMinutes < 60) return `${Math.floor(diffMinutes)}m`;
+  if (diffHours < 24) return `${Math.floor(diffHours)}h`;
+  if (diffDays < 7) return `${Math.floor(diffDays)}d`;
+  
+  // For dates older than a week, return date
+  return new Date(date).toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric' 
+  });
+};
 
 // Utility function to generate avatar based on name
 const generateAvatar = (name) => {
@@ -15,12 +33,11 @@ const generateAvatar = (name) => {
   canvas.height = 50;
   const context = canvas.getContext('2d');
   
-  // Use a consistent background color based on the name
   const hashCode = (str) => {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       hash = ((hash << 5) - hash) + str.charCodeAt(i);
-      hash = hash & hash; // Convert to 32-bit integer
+      hash = hash & hash;
     }
     return hash;
   };
@@ -29,7 +46,6 @@ const generateAvatar = (name) => {
   context.fillStyle = bgColor;
   context.fillRect(0, 0, 50, 50);
   
-  // Add initials
   context.fillStyle = 'white';
   context.font = '20px Arial';
   context.textAlign = 'center';
@@ -63,6 +79,19 @@ function ChatSidebar({
 }) {
   const [profileImages, setProfileImages] = useState({});
 
+  // Sort chat history by most recent message
+  const sortedChatHistory = [...chatHistory].sort((a, b) => {
+    const lastMessageA = a.messages.length > 0 
+      ? new Date(a.messages[a.messages.length - 1].timestamp)
+      : new Date(a.lastActivity);
+    
+    const lastMessageB = b.messages.length > 0 
+      ? new Date(b.messages[b.messages.length - 1].timestamp)
+      : new Date(b.lastActivity);
+    
+    return lastMessageB - lastMessageA;
+  });
+
   // Fetch profile images for all unique users in chat history
   useEffect(() => {
     const fetchProfileImages = async () => {
@@ -92,8 +121,19 @@ function ChatSidebar({
     fetchProfileImages();
   }, [chatHistory, currentUser]);
 
+  // Function to get last message details
+  const getLastMessageDetails = (chat) => {
+    if (chat.messages.length === 0) return { text: "No messages", time: chat.lastActivity };
+    
+    const lastMessage = chat.messages[chat.messages.length - 1];
+    return { 
+      text: lastMessage.message || (lastMessage.attachments.length > 0 ? "Attachment" : ""), 
+      time: lastMessage.timestamp 
+    };
+  };
+
   return (
-    <Card className="h-100">
+    <Card className="h-100 bg-light">
       <Card.Body className="d-flex flex-column h-100">
         <div className="mb-3 d-flex gap-2">
           <Button
@@ -124,11 +164,11 @@ function ChatSidebar({
           </Button>
         </div>
 
-        {error && <Alert variant="danger">{error}</Alert>}
-        {successMessage && <Alert variant="success">{successMessage}</Alert>}
+        {error && <Alert variant="danger" className="mb-3">{error}</Alert>}
+        {successMessage && <Alert variant="success" className="mb-3">{successMessage}</Alert>}
 
         <div className="overflow-auto flex-grow-1">
-          {chatHistory.slice().map((chat) => {
+          {sortedChatHistory.map((chat) => {
             // For direct chats, get the other participant's username
             const otherUsernames = chat.usernames.filter(username => username !== currentUser.username);
             const displayName = chat.chatType === "group" 
@@ -140,43 +180,63 @@ function ChatSidebar({
               ? generateAvatar(chat.chatName)
               : profileImages[otherUsernames[0]] || generateAvatar(displayName);
 
+            // Get last message details
+            const { text: lastMessageText, time: lastMessageTime } = getLastMessageDetails(chat);
+
             return (
               <Card
                 key={chat._id}
-                className={`mb-2 cursor-pointer ${chatId === chat._id ? 'border-primary' : ''}`}
+                className={`mb-2 shadow-sm ${chatId === chat._id ? 'border-primary' : 'border-light'}`}
                 onClick={() => handleChatSelect(chat)}
                 style={{ cursor: 'pointer' }}
               >
-                <Card.Body className="d-flex justify-content-between align-items-center py-2">
-                  <div className="d-flex align-items-center gap-2">
+                <Card.Body className="d-flex justify-content-between align-items-center py-2 bg-white">
+                  <div className="d-flex align-items-center gap-3 w-100">
                     <img 
                       src={chatImage} 
                       alt="Chat avatar" 
-                      className="rounded-circle me-2"
-                      style={{ width: 40, height: 40, objectFit: 'cover' }}
+                      className="rounded-circle border border-light"
+                      style={{ width: 45, height: 45, objectFit: 'cover' }}
                     />
-                    <div>
-                      <div className="d-flex align-items-center gap-2">
-                      <span className="fw-medium">
-                        {chat.chatType === "group" ? (
-                          <>
-                            {chat.chatName}
-                            <MdOutlineGroup className="ms-2" />
-                          </>
-                        ) : (
-                          chat.usernames.filter(username => username !== currentUser.username).join(", ")
-                        )}
-                      </span>
+                    <div className="flex-grow-1">
+                      <div className="d-flex justify-content-between align-items-center">
+                        <div className="d-flex align-items-center gap-2">
+                          <span className="fw-bold text-dark">
+                            {chat.chatType === "group" ? (
+                              <>
+                                {chat.chatName}
+                                <MdOutlineGroup className="ms-2 text-muted" />
+                              </>
+                            ) : (
+                              chat.usernames.filter(username => username !== currentUser.username).join(", ")
+                            )}
+                          </span>
+                        </div>
+                        <small className="text-muted">
+                          {formatRelativeTime(lastMessageTime)}
+                        </small>
                       </div>
-                      {unreadCounts[chat._id] > 0 && (
-                        <span className="badge bg-primary">{unreadCounts[chat._id]} new</span>
-                      )}
+                      <div className="d-flex justify-content-between align-items-center">
+                        <div>
+                          <small className="text-muted d-block text-truncate" style={{ maxWidth: '200px' }}>
+                            {lastMessageText}
+                          </small>
+                          {unreadCounts[chat._id] > 0 && (
+                            <span className="badge bg-primary rounded-pill mt-1">
+                              {unreadCounts[chat._id]} new
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <Button
                     variant="link"
-                    className="text-danger p-0"
-                    onClick={e => handleDeleteChat(e, chat._id, chat)}
+                    className="text-danger p-0 ms-2"
+                    onClick={e => {
+                      e.stopPropagation(); // Prevent chat selection when deleting
+                      handleDeleteChat(e, chat._id, chat);
+                    }}
                   >
                     <BsTrash size={18} />
                   </Button>
