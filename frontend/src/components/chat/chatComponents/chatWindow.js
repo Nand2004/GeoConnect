@@ -1,4 +1,4 @@
-import React from 'react';
+import {React, useEffect, useRef} from 'react';
 import { Card, Button } from 'react-bootstrap';
 import { MdOutlineGroup, MdModeEdit } from 'react-icons/md';
 import { BsSend, BsImage } from 'react-icons/bs';
@@ -16,6 +16,20 @@ function ChatWindow({
   clearImageSelection,
   setEnlargedImage
 }) {
+
+  const messagesEndRef = useRef(null);
+
+    // Scroll to bottom when messages change
+    useEffect(() => {
+      scrollToBottom();
+    }, [messages]);
+  
+    // Scroll to bottom function
+    const scrollToBottom = () => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    
   return (
     <Card className="h-100">
       {chatId ? (
@@ -78,6 +92,8 @@ function ChatWindow({
               ) : (
                 <div className="text-center text-muted">No messages yet.</div>
               )}
+              <div ref={messagesEndRef} /> 
+
             </div>
           </Card.Body>
           <Card.Footer className="bg-white">
