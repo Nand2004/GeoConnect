@@ -247,71 +247,65 @@ const EventPage = () => {
 
 
               <div style={styles.eventCardContent}>
-                <div style={styles.eventDetails}>
-                  <div style={styles.eventDetailItem}>
-                    <FaMapMarkerAlt style={styles.detailIcon} />
-                    {calculateDistance(
-                      location.latitude,
-                      location.longitude,
-                      event.location.coordinates[1],
-                      event.location.coordinates[0]
-                    ).toFixed(0)}m away
-                  </div>
-                  <div
-                    style={{
-                      ...styles.eventDetailItem,
-                      cursor: 'pointer'
-                    }}
+  <div style={styles.eventDetails}>
+    <div style={styles.eventDetailItem}>
+      <FaMapMarkerAlt style={styles.detailIcon} />
+      {calculateDistance(
+        location.latitude,
+        location.longitude,
+        event.location.coordinates[1],
+        event.location.coordinates[0]
+      ).toFixed(0)}m away
+    </div>
+    <div style={styles.eventDetailItem}>
+      <FaUsers style={styles.detailIcon} />
+      {event.attendees.length} Attendees
+    </div>
+  </div>
 
+  <div style={styles.attendeeActions}>
+    {/* Show chat button if user is creator OR an attendee */}
+    {(event.creatorId === currentUser.id || 
+      event.attendees.some(a => a.userId === currentUser.id)) && (
+      <EventChatButton
+        currentUserId={currentUser.id}
+        eventId={event._id}
+        eventName={event.name}
+        attendees={event.attendees.map(userId => ({ userId }))}
+        chatType="group"
+      />
+    )}
 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedEvent(event);
-                      setIsAttendeesModalOpen(true);
-                    }}
-                  >
-                    <FaUsers style={styles.detailIcon} />
-                    {event.attendees.length} Attendees
-                  </div>
-                </div>
+    {/* Show edit button only to creator */}
+    {event.creatorId === currentUser.id && (
+      <button
+        onClick={() => openEditModal(event)}
+        style={styles.editButton}
+      >
+        Edit Event
+      </button>
+    )}
 
-                {/* Conditional Join/Leave Button */}
-                {event.creatorId !== currentUser.id && (
-                  <div style={styles.attendeeActions}>
-                    
-                    <EventChatButton
-                      currentUserId={currentUser.id}
-                      eventId={event._id}
-                      eventName={event.name}
-                      attendees={event.attendees.map(userId => ({ userId }))}
-                      chatType="group"
-                    />
-
-                    <button
-                      onClick={() => openEditModal(event)}
-                      style={styles.editButton}
-                    >
-                      Edit Event
-
-                    </button>
-                    {event.attendees.some(a => a.userId === currentUser.id) ? (
-                      <button
-                        onClick={() => leaveEvent(event._id)}
-                        style={styles.leaveButton}
-                      >
-                        Leave Event
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => joinEvent(event._id)}
-                        style={styles.joinButton}
-                      >
-                        Join Event
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
+    {/* Show join/leave button to non-creators */}
+    {event.creatorId !== currentUser.id && (
+      event.attendees.some(a => a.userId === currentUser.id) ? (
+        <button
+          onClick={() => leaveEvent(event._id)}
+          style={styles.leaveButton}
+        >
+          Leave Event
+        </button>
+      ) : (
+        <button
+          onClick={() => joinEvent(event._id)}
+          style={styles.joinButton}
+        >
+          Join Event
+        </button>
+      )
+    )}
+  </div>
+</div>
             </div>
           ))}
         </div>
