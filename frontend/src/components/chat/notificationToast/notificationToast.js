@@ -60,10 +60,6 @@ const NotificationToast = ({
     return currentNotification?.message ? <FaCommentAlt /> : <FaBell />;
   };
 
-  setTimeout(() => {
-    setCurrentNotification('');
-  }, 3000);
-
   if (!show || !currentNotification) return null;
 
   return (
