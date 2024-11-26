@@ -75,7 +75,8 @@ function ChatSidebar({
   setSearch,
   unreadCounts,
   error,
-  successMessage
+  successMessage,
+  setEnlargedImage
 }) {
   const [profileImages, setProfileImages] = useState({});
 
@@ -198,6 +199,7 @@ function ChatSidebar({
                       alt="Chat avatar" 
                       className="rounded-circle border border-light"
                       style={{ width: 45, height: 45, objectFit: 'cover' }}
+                      onClick={() => setEnlargedImage(chatImage)}
                     />
                     <div className="flex-grow-1">
                       <div className="d-flex justify-content-between align-items-center">

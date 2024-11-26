@@ -531,6 +531,7 @@ function Chat() {
               unreadCounts={unreadCounts}
               error={error}
               successMessage={successMessage}
+              setEnlargedImage={setEnlargedImage}
             />
           </div>
 
