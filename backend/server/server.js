@@ -69,6 +69,7 @@ app.use('/image', require('./routes/image/createImage'));
 app.use('/image', require('./routes/image/deleteImage'));
 app.use('/image', require('./routes/image/profileImageUpload'));
 app.use('/image', require('./routes/image/profileImageRemove'));
+app.use('/image', require('./routes/image/getProfileImageByUsername'));
 
 //Event routes
 app.use('/event', require('./routes/event/createEvent'));

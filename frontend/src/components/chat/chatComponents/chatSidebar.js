@@ -107,8 +107,9 @@ function ChatSidebar({
       const images = {};
       for (const username of usernames) {
         try {
-          const response = await axios.get(`http://localhost:8081/user/getUserProfileImage/${currentUser.id}`);
+          const response = await axios.get(`http://localhost:8081/image/getUserProfileImage/${username}`);
           images[username] = response.data.profileImage || generateAvatar(username);
+          console.log("The username of selected is : ", username);
         } catch (error) {
           console.error(`Error fetching profile image for ${username}:`, error);
           images[username] = generateAvatar(username);
