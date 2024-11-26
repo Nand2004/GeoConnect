@@ -19,7 +19,6 @@ const formatRelativeTime = (date) => {
   if (diffHours < 24) return `${Math.floor(diffHours)}h`;
   if (diffDays < 7) return `${Math.floor(diffDays)}d`;
   
-  // For dates older than a week, return date
   return new Date(date).toLocaleDateString('en-US', { 
     month: 'short', 
     day: 'numeric' 
@@ -110,7 +109,6 @@ function ChatSidebar({
         try {
           const response = await axios.get(`http://localhost:8081/image/getUserProfileImage/${username}`);
           images[username] = response.data.profileImage || generateAvatar(username);
-          console.log("The username of selected is : ", username);
         } catch (error) {
           console.error(`Error fetching profile image for ${username}:`, error);
           images[username] = generateAvatar(username);
@@ -135,12 +133,12 @@ function ChatSidebar({
   };
 
   return (
-    <Card className="h-100 bg-light">
-      <Card.Body className="d-flex flex-column h-100">
+    <Card className="h-100 shadow-sm border-0" style={{ backgroundColor: '#f8f9fa' }}>
+      <Card.Body className="d-flex flex-column h-100 p-3">
         <div className="mb-3 d-flex gap-2">
           <Button
             variant="primary"
-            className="w-50 d-flex align-items-center justify-content-center gap-2"
+            className="w-50 py-2 rounded-3 d-flex align-items-center justify-content-center gap-2 shadow-sm"
             onClick={() => {
               setChatMode("direct");
               setShowUserModal(true);
@@ -153,7 +151,7 @@ function ChatSidebar({
           </Button>
           <Button
             variant="outline-primary"
-            className="w-50 d-flex align-items-center justify-content-center gap-2"
+            className="w-50 py-2 rounded-3 d-flex align-items-center justify-content-center gap-2 shadow-sm"
             onClick={() => {
               setChatMode("group");
               setShowUserModal(true);
@@ -166,10 +164,10 @@ function ChatSidebar({
           </Button>
         </div>
 
-        {error && <Alert variant="danger" className="mb-3">{error}</Alert>}
-        {successMessage && <Alert variant="success" className="mb-3">{successMessage}</Alert>}
+        {error && <Alert variant="danger" className="mb-3 rounded-3">{error}</Alert>}
+        {successMessage && <Alert variant="success" className="mb-3 rounded-3">{successMessage}</Alert>}
 
-        <div className="overflow-auto flex-grow-1">
+        <div className="overflow-auto flex-grow-1 pe-1">
           {sortedChatHistory.map((chat) => {
             // For direct chats, get the other participant's username
             const otherUsernames = chat.usernames.filter(username => username !== currentUser.username);
@@ -188,11 +186,11 @@ function ChatSidebar({
             return (
               <Card
                 key={chat._id}
-                className={`mb-2 shadow-sm ${chatId === chat._id ? 'border-primary' : 'border-light'}`}
+                className={`mb-2 shadow-sm rounded-3 border-0 ${chatId === chat._id ? 'bg-primary text-white' : 'bg-white'}`}
                 onClick={() => handleChatSelect(chat)}
-                style={{ cursor: 'pointer' }}
+                style={{ cursor: 'pointer', transition: 'transform 0.2s' }}
               >
-                <Card.Body className="d-flex justify-content-between align-items-center py-2 bg-white">
+                <Card.Body className="d-flex justify-content-between align-items-center py-3">
                   <div className="d-flex align-items-center gap-3 w-100">
                     <img 
                       src={chatImage} 
@@ -204,28 +202,28 @@ function ChatSidebar({
                     <div className="flex-grow-1">
                       <div className="d-flex justify-content-between align-items-center">
                         <div className="d-flex align-items-center gap-2">
-                          <span className="fw-bold text-dark">
+                          <span className={`fw-bold ${chatId === chat._id ? 'text-white' : 'text-dark'}`}>
                             {chat.chatType === "group" ? (
                               <>
                                 {chat.chatName}
-                                <MdOutlineGroup className="ms-2 text-muted" />
+                                <MdOutlineGroup className={`ms-2 ${chatId === chat._id ? 'text-light' : 'text-muted'}`} />
                               </>
                             ) : (
                               chat.usernames.filter(username => username !== currentUser.username).join(", ")
                             )}
                           </span>
                         </div>
-                        <small className="text-muted">
+                        <small className={chatId === chat._id ? 'text-light' : 'text-muted'}>
                           {formatRelativeTime(lastMessageTime)}
                         </small>
                       </div>
                       <div className="d-flex justify-content-between align-items-center">
                         <div>
-                          <small className="text-muted d-block text-truncate" style={{ maxWidth: '200px' }}>
+                          <small className={`d-block text-truncate ${chatId === chat._id ? 'text-white-50' : 'text-muted'}`} style={{ maxWidth: '200px' }}>
                             {lastMessageText}
                           </small>
                           {unreadCounts[chat._id] > 0 && (
-                            <span className="badge bg-primary rounded-pill mt-1">
+                            <span className={`badge ${chatId === chat._id ? 'bg-light text-primary' : 'bg-primary'} rounded-pill mt-1`}>
                               {unreadCounts[chat._id]} new
                             </span>
                           )}
@@ -235,9 +233,9 @@ function ChatSidebar({
                   </div>
                   <Button
                     variant="link"
-                    className="text-danger p-0 ms-2"
+                    className={`p-0 ms-2 ${chatId === chat._id ? 'text-white-50' : 'text-danger'}`}
                     onClick={e => {
-                      e.stopPropagation(); // Prevent chat selection when deleting
+                      e.stopPropagation();
                       handleDeleteChat(e, chat._id, chat);
                     }}
                   >
