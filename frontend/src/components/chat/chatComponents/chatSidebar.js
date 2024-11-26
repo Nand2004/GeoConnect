@@ -6,7 +6,6 @@ import { MdOutlineGroup } from 'react-icons/md';
 import { BsTrash } from 'react-icons/bs';
 import { PlusIcon, UsersIcon } from 'lucide-react';
 
-// Native time formatting utility
 const formatRelativeTime = (date) => {
   const now = new Date();
   const diffSeconds = (now - new Date(date)) / 1000;
@@ -25,7 +24,6 @@ const formatRelativeTime = (date) => {
   });
 };
 
-// Utility function to generate avatar based on name
 const generateAvatar = (name) => {
   const canvas = document.createElement('canvas');
   canvas.width = 50;
@@ -79,7 +77,6 @@ function ChatSidebar({
 }) {
   const [profileImages, setProfileImages] = useState({});
 
-  // Sort chat history by most recent message
   const sortedChatHistory = [...chatHistory].sort((a, b) => {
     const lastMessageA = a.messages.length > 0 
       ? new Date(a.messages[a.messages.length - 1].timestamp)
@@ -92,7 +89,6 @@ function ChatSidebar({
     return lastMessageB - lastMessageA;
   });
 
-  // Fetch profile images for all unique users in chat history
   useEffect(() => {
     const fetchProfileImages = async () => {
       const usernames = new Set();
@@ -121,7 +117,6 @@ function ChatSidebar({
     fetchProfileImages();
   }, [chatHistory, currentUser]);
 
-  // Function to get last message details
   const getLastMessageDetails = (chat) => {
     if (chat.messages.length === 0) return { text: "No messages", time: chat.lastActivity };
     
@@ -133,11 +128,17 @@ function ChatSidebar({
   };
 
   return (
-    <Card className="h-100 shadow-sm border-0" style={{ backgroundColor: '#f8f9fa' }}>
+    <Card 
+      className="h-100 border-0" 
+      style={{ 
+        background: "linear-gradient(135deg, #0a0a19 0%, #1a1a4a 50%, #0a0a19 100%)",
+        color: '#fff'
+      }}
+    >
       <Card.Body className="d-flex flex-column h-100 p-3">
         <div className="mb-3 d-flex gap-2">
           <Button
-            variant="primary"
+            variant="light"
             className="w-50 py-2 rounded-3 d-flex align-items-center justify-content-center gap-2 shadow-sm"
             onClick={() => {
               setChatMode("direct");
@@ -146,11 +147,11 @@ function ChatSidebar({
               setSearch("");
             }}
           >
-            <PlusIcon size={20} />
+            <PlusIcon size={20} color="#1a1a4a" />
             New Chat
           </Button>
           <Button
-            variant="outline-primary"
+            variant="outline-light"
             className="w-50 py-2 rounded-3 d-flex align-items-center justify-content-center gap-2 shadow-sm"
             onClick={() => {
               setChatMode("group");
@@ -169,26 +170,27 @@ function ChatSidebar({
 
         <div className="overflow-auto flex-grow-1 pe-1">
           {sortedChatHistory.map((chat) => {
-            // For direct chats, get the other participant's username
             const otherUsernames = chat.usernames.filter(username => username !== currentUser.username);
             const displayName = chat.chatType === "group" 
               ? chat.chatName 
               : otherUsernames.join(", ");
             
-            // Get profile image or generate avatar
             const chatImage = chat.chatType === "group"
               ? generateAvatar(chat.chatName)
               : profileImages[otherUsernames[0]] || generateAvatar(displayName);
 
-            // Get last message details
             const { text: lastMessageText, time: lastMessageTime } = getLastMessageDetails(chat);
 
             return (
               <Card
                 key={chat._id}
-                className={`mb-2 shadow-sm rounded-3 border-0 ${chatId === chat._id ? 'bg-primary text-white' : 'bg-white'}`}
+                className={`mb-2 shadow-sm rounded-3 border-0 ${chatId === chat._id ? 'bg-light text-dark' : 'bg-dark text-light'}`}
                 onClick={() => handleChatSelect(chat)}
-                style={{ cursor: 'pointer', transition: 'transform 0.2s' }}
+                style={{ 
+                  cursor: 'pointer', 
+                  transition: 'transform 0.2s',
+                  backgroundColor: chatId === chat._id ? '#fff' : 'rgba(255,255,255,0.1)'
+                }}
               >
                 <Card.Body className="d-flex justify-content-between align-items-center py-3">
                   <div className="d-flex align-items-center gap-3 w-100">
@@ -202,28 +204,28 @@ function ChatSidebar({
                     <div className="flex-grow-1">
                       <div className="d-flex justify-content-between align-items-center">
                         <div className="d-flex align-items-center gap-2">
-                          <span className={`fw-bold ${chatId === chat._id ? 'text-white' : 'text-dark'}`}>
+                          <span className={`fw-bold ${chatId === chat._id ? 'text-dark' : 'text-light'}`}>
                             {chat.chatType === "group" ? (
                               <>
                                 {chat.chatName}
-                                <MdOutlineGroup className={`ms-2 ${chatId === chat._id ? 'text-light' : 'text-muted'}`} />
+                                <MdOutlineGroup className={`ms-2 ${chatId === chat._id ? 'text-muted' : 'text-light'}`} />
                               </>
                             ) : (
                               chat.usernames.filter(username => username !== currentUser.username).join(", ")
                             )}
                           </span>
                         </div>
-                        <small className={chatId === chat._id ? 'text-light' : 'text-muted'}>
+                        <small className={chatId === chat._id ? 'text-muted' : 'text-light-50'}>
                           {formatRelativeTime(lastMessageTime)}
                         </small>
                       </div>
                       <div className="d-flex justify-content-between align-items-center">
                         <div>
-                          <small className={`d-block text-truncate ${chatId === chat._id ? 'text-white-50' : 'text-muted'}`} style={{ maxWidth: '200px' }}>
+                          <small className={`d-block text-truncate ${chatId === chat._id ? 'text-muted' : 'text-light-50'}`} style={{ maxWidth: '200px' }}>
                             {lastMessageText}
                           </small>
                           {unreadCounts[chat._id] > 0 && (
-                            <span className={`badge ${chatId === chat._id ? 'bg-light text-primary' : 'bg-primary'} rounded-pill mt-1`}>
+                            <span className={`badge ${chatId === chat._id ? 'bg-primary' : 'bg-light text-primary'} rounded-pill mt-1`}>
                               {unreadCounts[chat._id]} new
                             </span>
                           )}
@@ -233,7 +235,7 @@ function ChatSidebar({
                   </div>
                   <Button
                     variant="link"
-                    className={`p-0 ms-2 ${chatId === chat._id ? 'text-white-50' : 'text-danger'}`}
+                    className={`p-0 ms-2 ${chatId === chat._id ? 'text-danger' : 'text-light-50'}`}
                     onClick={e => {
                       e.stopPropagation();
                       handleDeleteChat(e, chat._id, chat);
