@@ -421,7 +421,8 @@ function Chat() {
     if (socket) {
       const handleMessage = async (message) => {
         console.log("Listening Message:", message);
-
+  
+        // Update messages for current chat
         if (message.chatId === chatId && message.sender !== currentUser.id) {
           setMessages((prev) => [
             ...prev,
@@ -432,27 +433,53 @@ function Chat() {
               timestamp: new Date().toISOString(),
             },
           ]);
-        } else if (message.sender !== currentUser?.id) {
+        }
+  
+        // Update chat history dynamically
+        setChatHistory((prevChats) => 
+          prevChats.map((chat) => {
+            if (chat._id === message.chatId) {
+              return {
+                ...chat,
+                messages: [
+                  ...(chat.messages || []),
+                  {
+                    _id: message._id || Date.now(),
+                    message: message.message,
+                    attachments: message.attachments || [],
+                    timestamp: new Date().toISOString(),
+                    sender: message.sender
+                  }
+                ],
+                lastActivity: new Date().toISOString()
+              };
+            }
+            return chat;
+          })
+        );
+  
+        // Existing notification and unread count logic
+        if (message.sender !== currentUser?.id) {
           try {
             const response = await axios.get(
               `http://localhost:8081/user/getUsernameByUserId/${message.sender}`
             );
             const senderUsername = response.data.username;
-
+  
             const chatResponse = await axios.get(
               `http://localhost:8081/chat/chatGetByChatId/${message.chatId}`
             );
-
+  
             const isUserInChat = chatResponse.data.users.some(
               (user) => user.userId === currentUser.id
             );
-
+  
             if (isUserInChat) {
               setUnreadCounts((prev) => ({
                 ...prev,
                 [message.chatId]: (prev[message.chatId] || 0) + 1,
               }));
-
+  
               const notification = {
                 id: Date.now(),
                 message: message.attachments?.length
@@ -463,7 +490,7 @@ function Chat() {
                 chatId: message.chatId,
                 timestamp: new Date().toISOString(),
               };
-
+  
               setNotifications((prev) => [...prev, notification]);
               setCurrentNotification(notification);
               setShowToast(true);
@@ -473,14 +500,14 @@ function Chat() {
           }
         }
       };
-
+  
       socket.on("listeningMessage", handleMessage);
       return () => {
         socket.off("listeningMessage", handleMessage);
       };
     }
   }, [socket, chatId, currentUser]);
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     const messageText = e.target.message.value;
