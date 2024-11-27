@@ -14,7 +14,8 @@ const io = new Server(server, {
   }
 });
 
-const SERVER_PORT = 8081;
+// Use PORT from environment variables or default to 8081
+const SERVER_PORT = process.env.PORT || 8081;
 
 // Database connection and routes (as in your existing code)
 require("dotenv").config();
@@ -71,7 +72,7 @@ app.use('/image', require('./routes/image/profileImageUpload'));
 app.use('/image', require('./routes/image/profileImageRemove'));
 app.use('/image', require('./routes/image/getProfileImageByUsername'));
 
-//Event routes
+// Event routes
 app.use('/event', require('./routes/event/createEvent'));
 app.use('/event', require('./routes/event/deleteEvent'));
 app.use('/event', require('./routes/event/getEvent'));
@@ -80,7 +81,6 @@ app.use('/event', require('./routes/event/joinEvent'));
 app.use('/event', require('./routes/event/leaveEvent'));
 app.use('/event', require('./routes/event/updateEvent'));
 app.use('/event', require('./routes/event/deleteAllEvents'));
-
 
 // Socket.io connection
 io.on("connection", (socket) => {
@@ -93,7 +93,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// Start server
-server.listen(SERVER_PORT, () => {
-  console.log(`The backend service is running on port ${SERVER_PORT} and waiting for requests.`);
+// Start server, binding to 0.0.0.0 and using the port from environment variable
+server.listen(SERVER_PORT, '0.0.0.0', () => {
+  console.log(`The backend service is running on port ${SERVER_PORT}`);
 });
