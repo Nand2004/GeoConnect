@@ -81,11 +81,6 @@ app.use('/event', require('./routes/event/leaveEvent'));
 app.use('/event', require('./routes/event/updateEvent'));
 app.use('/event', require('./routes/event/deleteAllEvents'));
 
-// Serve static files from React app's build folder
-app.use(express.static(path.join(__dirname, 'build')));
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
 
 // Socket.io connection
 io.on("connection", (socket) => {
