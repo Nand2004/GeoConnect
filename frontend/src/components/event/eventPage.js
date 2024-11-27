@@ -257,7 +257,19 @@ const EventPage = () => {
         event.location.coordinates[0]
       ).toFixed(0)}m away
     </div>
-    <div style={styles.eventDetailItem}>
+    <div
+                    style={{
+                      ...styles.eventDetailItem,
+                      cursor: 'pointer'
+                    }}
+
+
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedEvent(event);
+                      setIsAttendeesModalOpen(true);
+                    }}
+                  >
       <FaUsers style={styles.detailIcon} />
       {event.attendees.length} Attendees
     </div>
