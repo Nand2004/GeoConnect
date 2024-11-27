@@ -91,7 +91,7 @@ const EventPage = () => {
   // Find nearby events
   const findNearbyEvents = async () => {
     try {
-      const { data } = await axios.get('http://localhost:8081/event/getNearbyEvents', {
+      const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_SERVER_URI}/event/getNearbyEvents`, {
         params: {
           latitude: location.latitude,
           longitude: location.longitude,
@@ -110,7 +110,7 @@ const EventPage = () => {
   // Join an event
   const joinEvent = async (eventId) => {
     try {
-      await axios.post('http://localhost:8081/event/joinEvent/', {
+      await axios.post(`${process.env.REACT_APP_BACKEND_SERVER_URI}/event/joinEvent/`, {
         eventId,
         userId: currentUser.id
       });
@@ -124,7 +124,7 @@ const EventPage = () => {
   // Leave an event
   const leaveEvent = async (eventId) => {
     try {
-      await axios.post('http://localhost:8081/event/leaveEvent/', {
+      await axios.post(`${process.env.REACT_APP_BACKEND_SERVER_URI}/event/leaveEvent/`, {
         eventId,
         userId: currentUser.id
       });
@@ -149,7 +149,7 @@ const EventPage = () => {
         dateTime: new Date().toISOString() // Use current time automatically
       };
 
-      await axios.post('http://localhost:8081/event/createEvent/', eventData);
+      await axios.post(`${process.env.REACT_APP_BACKEND_SERVER_URI}/event/createEvent/`, eventData);
       setMessage('Event created successfully!');
       setIsCreateModalOpen(false);
       findNearbyEvents(); // Refresh events

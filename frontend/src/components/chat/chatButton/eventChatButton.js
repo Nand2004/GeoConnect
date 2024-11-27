@@ -26,7 +26,7 @@ const EventChatButton = ({
     try {
       // Fetch existing chats for the current user
       const { data: existingChats } = await axios.get(
-        `http://localhost:8081/chat/chatGetByUserId/${currentUserId}`
+        `${process.env.REACT_APP_BACKEND_SERVER_URI}/chat/chatGetByUserId/${currentUserId}`
       );
 
       // Find existing chat based on chat type and event
@@ -57,7 +57,7 @@ const EventChatButton = ({
 
       // Create new chat
       const response = await axios.post(
-        "http://localhost:8081/chat/chatCreateChat",
+        `${process.env.REACT_APP_BACKEND_SERVER_URI}/chat/chatCreateChat`,
         {
           chatType,
           users: userIds.map(userId => ({ 

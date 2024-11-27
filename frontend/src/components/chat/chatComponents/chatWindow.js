@@ -75,7 +75,7 @@ function ChatWindow({
       if (otherUsername) {
         try {
           const response = await axios.get(
-            `http://localhost:8081/image/getUserProfileImage/${otherUsername}`
+            `${process.env.REACT_APP_BACKEND_SERVER_URI}/image/getUserProfileImage/${otherUsername}`
           );
           
           // Use API image if available, otherwise generate avatar

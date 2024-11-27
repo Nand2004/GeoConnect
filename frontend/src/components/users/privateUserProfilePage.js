@@ -40,7 +40,7 @@ const PrivateUserProfile = () => {
     const userInfo = getUserInfo();
     setUser(userInfo);
 
-    axios.get(`http://localhost:8081/user/getUserProfileImage/${userInfo.id}`)
+    axios.get(`${process.env.REACT_APP_BACKEND_SERVER_URI}/user/getUserProfileImage/${userInfo.id}`)
       .then((res) => {
         const fetchedProfileImage = res.data.profileImage || "default-profile-image-url";
         setProfileImage(fetchedProfileImage);
@@ -64,7 +64,7 @@ const PrivateUserProfile = () => {
     formData.append('name', user.username);
 
     try {
-      const response = await axios.post('http://localhost:8081/image/profileImageUpload', formData, {
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_SERVER_URI}/image/profileImageUpload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setProfileImage(response.data.imageUri);
@@ -77,7 +77,7 @@ const PrivateUserProfile = () => {
 
   const removeProfileImage = async () => {
     try {
-      await axios.post('http://localhost:8081/image/profileImageRemove', {
+      await axios.post(`${process.env.REACT_APP_BACKEND_SERVER_URI}/image/profileImageRemove`, {
         name: user.username,
       });
       setProfileImage("default-profile-image-url");

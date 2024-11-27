@@ -24,7 +24,7 @@ const NavigationBar = () => {
   }, []);
 
   useEffect(() => {
-    const newSocket = io("http://localhost:8081");
+    const newSocket = io(`${process.env.REACT_APP_BACKEND_SERVER_URI}`);
     setSocket(newSocket);
     return () => newSocket.close();
   }, []);
@@ -35,7 +35,7 @@ const NavigationBar = () => {
         if (message.sender !== currentUser.id) {
           try {
             const response = await axios.get(
-              `http://localhost:8081/user/getUsernameByUserId/${message.sender}`
+              `${process.env.REACT_APP_BACKEND_SERVER_URI}/user/getUsernameByUserId/${message.sender}`
             );
             const senderUsername = response.data.username;
 

@@ -47,7 +47,7 @@ function Chat() {
   const handleGroupManagementModalOpen = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8081/chat/chatGetByChatId/${chatId}`
+        `${process.env.REACT_APP_BACKEND_SERVER_URI}/chat/chatGetByChatId/${chatId}`
       );
       setGroupUsers(response.data.users);
       setShowGroupManagementModal(true);
@@ -82,7 +82,7 @@ function Chat() {
   }, [location.state]);
 
   useEffect(() => {
-    const newSocket = io("http://localhost:8081");
+    const newSocket = io(`${process.env.REACT_APP_BACKEND_SERVER_URI}`);
     setSocket(newSocket);
     return () => newSocket.close();
   }, []);
@@ -92,14 +92,14 @@ function Chat() {
       if (currentUser) {
         try {
           const { data } = await axios.get(
-            `http://localhost:8081/chat/chatGetByUserId/${currentUser.id}`
+            `${process.env.REACT_APP_BACKEND_SERVER_URI}/chat/chatGetByUserId/${currentUser.id}`
           );
           const chatWithUsernames = await Promise.all(
             data.map(async (chat) => {
               const usernames = await Promise.all(
                 chat.users.map(async (user) => {
                   const response = await axios.get(
-                    `http://localhost:8081/user/getUsernameByUserId/${user.userId}`
+                    `${process.env.REACT_APP_BACKEND_SERVER_URI}/user/getUsernameByUserId/${user.userId}`
                   );
                   return response.data.username;
                 })
@@ -155,7 +155,7 @@ function Chat() {
     }
     try {
       const { data } = await axios.get(
-        `http://localhost:8081/user/userSearchUser?username=${search}`
+        `${process.env.REACT_APP_BACKEND_SERVER_URI}/user/userSearchUser?username=${search}`
       );
       const filteredResults = data.filter(
         (user) => user._id !== currentUser.id
@@ -198,7 +198,7 @@ function Chat() {
       };
 
       const response = await axios.post(
-        "http://localhost:8081/chat/chatCreateChat",
+        `${process.env.REACT_APP_BACKEND_SERVER_URI}/chat/chatCreateChat`,
         body
       );
 
@@ -232,7 +232,7 @@ function Chat() {
   const loadMessages = async (chatId) => {
     try {
       const response = await axios.get(
-        `http://localhost:8081/chat/chatGetByChatId/${chatId}`
+        `${process.env.REACT_APP_BACKEND_SERVER_URI}/chat/chatGetByChatId/${chatId}`
       );
       if (response.data && response.data.messages) {
         const loadedMessages = response.data.messages.map((msg) => ({
@@ -289,7 +289,7 @@ function Chat() {
           formData.append("name", `${currentUser.id}_${Date.now()}`);
 
           const imageResponse = await axios.post(
-            "http://localhost:8081/image/createImage",
+            `${process.env.REACT_APP_BACKEND_SERVER_URI}/image/createImage`,
             formData,
             {
               headers: {
@@ -317,7 +317,7 @@ function Chat() {
 
       // Send message to backend
       const messageResponse = await axios.post(
-        `http://localhost:8081/chat/chatSendMessage/${chatId}`,
+        `${process.env.REACT_APP_BACKEND_SERVER_URI}/chat/chatSendMessage/${chatId}`,
         {
           sender: currentUser.id,
           message: newMessage.message,
@@ -363,7 +363,7 @@ function Chat() {
       // Check if the chat is a group chat and has an event associated
       if (chat.chatType === "group" && chat.event) {
         // If it's an event-based group chat, remove the user from the event
-        await axios.post('http://localhost:8081/event/leaveEvent/', {
+        await axios.post('${process.env.REACT_APP_BACKEND_SERVER_URI}/event/leaveEvent/', {
           eventId: chat.event,
           userId: currentUser?.id
         });
@@ -381,7 +381,7 @@ function Chat() {
         setSuccessMessage("Left event chat successfully");
       } else {
         // For non-event chats, proceed with regular chat deletion
-        await axios.delete(`http://localhost:8081/chat/deleteChat/${chatId}`);
+        await axios.delete(`${process.env.REACT_APP_BACKEND_SERVER_URI}/chat/deleteChat/${chatId}`);
         
         // Update local state
         setChatHistory((prev) => prev.filter((c) => c._id !== chatId));
@@ -462,12 +462,12 @@ function Chat() {
         if (message.sender !== currentUser?.id) {
           try {
             const response = await axios.get(
-              `http://localhost:8081/user/getUsernameByUserId/${message.sender}`
+              `${process.env.REACT_APP_BACKEND_SERVER_URI}/user/getUsernameByUserId/${message.sender}`
             );
             const senderUsername = response.data.username;
   
             const chatResponse = await axios.get(
-              `http://localhost:8081/chat/chatGetByChatId/${message.chatId}`
+              `${process.env.REACT_APP_BACKEND_SERVER_URI}/chat/chatGetByChatId/${message.chatId}`
             );
   
             const isUserInChat = chatResponse.data.users.some(

@@ -19,10 +19,10 @@ const GroupManagementModal = ({
   useEffect(() => {
     const fetchGroupUsers = async () => {
       try {
-        const response = await axios.get(`http://localhost:8081/chat/chatGetByChatId/${chatId}`);
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_SERVER_URI}/chat/chatGetByChatId/${chatId}`);
         const chatWithUsernames = await Promise.all(
           response.data.users.map(async (user) => {
-            const usernameResponse = await axios.get(`http://localhost:8081/user/getUsernameByUserId/${user.userId}`);
+            const usernameResponse = await axios.get(`${process.env.REACT_APP_BACKEND_SERVER_URI}/user/getUsernameByUserId/${user.userId}`);
             return { userId: user.userId, username: usernameResponse.data.username };
           })
         );
@@ -41,7 +41,7 @@ const GroupManagementModal = ({
   const handleSearch = async () => {
     try {
       const { data } = await axios.get(
-        `http://localhost:8081/user/userSearchUser?username=${searchText}`
+        `${process.env.REACT_APP_BACKEND_SERVER_URI}/user/userSearchUser?username=${searchText}`
       );
       const filteredResults = data.filter(
         (user) => !groupUsers.some((u) => u.userId === user._id)
@@ -55,7 +55,7 @@ const GroupManagementModal = ({
 
   const handleAddUser = async (user) => {
     try {
-      const { data } = await axios.post(`http://localhost:8081/chat/chatAddGroupUser/${chatId}`, {
+      const { data } = await axios.post(`${process.env.REACT_APP_BACKEND_SERVER_URI}/chat/chatAddGroupUser/${chatId}`, {
         userId: user._id
       });
       setGroupUsers(data.chat.users);
@@ -68,7 +68,7 @@ const GroupManagementModal = ({
 
   const handleRemoveUser = async (user) => {
     try {
-      await axios.post(`http://localhost:8081/chat/chatRemoveGroupUser/${chatId}`, {
+      await axios.post(`${process.env.REACT_APP_BACKEND_SERVER_URI}/chat/chatRemoveGroupUser/${chatId}`, {
         userId: user.userId
       });
       setGroupUsers(prevUsers => prevUsers.filter(u => u.userId !== user.userId));

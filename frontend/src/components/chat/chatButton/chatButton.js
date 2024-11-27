@@ -19,7 +19,7 @@ const ChatButton = ({ targetUser, currentUserId, onSuccess, onError }) => {
     try {
       // Check if chat already exists
       const { data: existingChats } = await axios.get(
-        `http://localhost:8081/chat/chatGetByUserId/${currentUserId}`
+        `${process.env.REACT_APP_BACKEND_SERVER_URI}/chat/chatGetByUserId/${currentUserId}`
       );
 
       // Find if there's an existing direct chat between these users
@@ -42,7 +42,7 @@ const ChatButton = ({ targetUser, currentUserId, onSuccess, onError }) => {
 
       // If no existing chat, create new one
       const response = await axios.post(
-        "http://localhost:8081/chat/chatCreateChat",
+        `${process.env.REACT_APP_BACKEND_SERVER_URI}/chat/chatCreateChat`,
         {
           chatType: "direct",
           users: [currentUserId, targetUser._id]

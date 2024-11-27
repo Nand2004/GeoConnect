@@ -154,7 +154,7 @@ const AttendeesModal = ({ eventId, currentUserId, onClose }) => {
       try {
         setLoading(true);
         setError(null);
-        const response = await axios.get(`http://localhost:8081/event/getEvent/${eventId}`);
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_SERVER_URI}/event/getEvent/${eventId}`);
         setEventDetails(response.data);
       } catch (error) {
         console.error('Error fetching event details:', error);

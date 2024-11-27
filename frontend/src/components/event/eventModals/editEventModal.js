@@ -34,7 +34,7 @@ const EditEventModal = ({
       };
 
       const response = await axios.put(
-        `http://localhost:8081/event/updateEvent/${event._id}`, 
+        `${process.env.REACT_APP_BACKEND_SERVER_URI}/event/updateEvent/${event._id}`, 
         updatePayload
       );
       

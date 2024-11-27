@@ -56,7 +56,7 @@ const FindUsersNearby = () => {
 
   const findUsersNearby = async (latitude, longitude) => {
     try {
-      const { data } = await axios.get('http://localhost:8081/user/locationGetNearby', {
+      const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_SERVER_URI}/user/locationGetNearby`, {
         params: { latitude, longitude, distance: searchDistance },
       });
       setNearbyUsers(data);
