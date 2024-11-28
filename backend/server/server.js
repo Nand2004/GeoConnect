@@ -24,7 +24,7 @@ dbConnection();
 
 // Middleware
 app.use(cors({ 
-  origin: ['http://localhost:3000', 'http://localhost:8096'],
+  origin: ['http://localhost:3000', 'http://localhost:8096', 'https://main.d374vy2u3fhmok.amplifyapp.com'],
   methods: ["GET", "POST", "DELETE", "PUT"],
   credentials: true
 }));
