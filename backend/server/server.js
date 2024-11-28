@@ -8,7 +8,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:3000', 'http://localhost:8096'], // Allow both frontend origins
+    origin: ['http://localhost:3000', 'http://localhost:8096', 'https://main.d374vy2u3fhmok.amplifyapp.com'],
     methods: ["GET", "POST"],
     credentials: true
   }
