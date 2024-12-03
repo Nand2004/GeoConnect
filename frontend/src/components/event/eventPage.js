@@ -88,25 +88,33 @@ const EventPage = () => {
       : setError('Geolocation is not supported by this browser.');
   };
 
-  // Find nearby events
-  const findNearbyEvents = async () => {
+ // Implement infinite scroll or pagination for events
+const [page, setPage] = useState(1);
+const [hasMoreEvents, setHasMoreEvents] = useState(true);
+
+const findNearbyEvents = async () => {
+  if (hasMoreEvents) {
     try {
       const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_SERVER_URI}/event/getNearbyEvents`, {
         params: {
           latitude: location.latitude,
           longitude: location.longitude,
-          radius: searchRadius
-        },
+          radius: searchRadius,
+          page: page
+        }
       });
-      setNearbyEvents(data);
-      if (data.length === 0) setMessage('No events found nearby.');
-      setLoading(false);
+      
+      if (data.length === 0) {
+        setHasMoreEvents(false);
+      } else {
+        setNearbyEvents(prev => [...prev, ...data]);
+        setPage(prev => prev + 1);
+      }
     } catch (err) {
-      setError('Error finding nearby events.');
-      setLoading(false);
+      console.error('Failed to load more events');
     }
-  };
-
+  }
+};
   // Join an event
   const joinEvent = async (eventId) => {
     try {
