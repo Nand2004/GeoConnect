@@ -115,9 +115,14 @@ const EventPage = () => {
       setError('Error finding nearby events.');
       setLoading(false);
     }
+    // Clear messages after 3 seconds
+    setTimeout(() => {
+      setMessage("");
+      setError("");
+    }, 3000);
   };
-   // Trigger findNearbyEvents when filters change
-   useEffect(() => {
+  // Trigger findNearbyEvents when filters change
+  useEffect(() => {
     if (location.latitude && location.longitude) {
       findNearbyEvents();
     }
@@ -204,7 +209,7 @@ const EventPage = () => {
     <div style={styles.container}>
       {/* Header Section */}
 
-      <EventFilterComponent 
+      <EventFilterComponent
         onFilterChange={setFilters}
         initialFilters={{
           // Optional: provide any initial filter states
@@ -274,17 +279,17 @@ const EventPage = () => {
 
 
               <div style={styles.eventCardContent}>
-  <div style={styles.eventDetails}>
-    <div style={styles.eventDetailItem}>
-      <FaMapMarkerAlt style={styles.detailIcon} />
-      {calculateDistance(
-        location.latitude,
-        location.longitude,
-        event.location.coordinates[1],
-        event.location.coordinates[0]
-      ).toFixed(0)}m away
-    </div>
-    <div
+                <div style={styles.eventDetails}>
+                  <div style={styles.eventDetailItem}>
+                    <FaMapMarkerAlt style={styles.detailIcon} />
+                    {calculateDistance(
+                      location.latitude,
+                      location.longitude,
+                      event.location.coordinates[1],
+                      event.location.coordinates[0]
+                    ).toFixed(0)}m away
+                  </div>
+                  <div
                     style={{
                       ...styles.eventDetailItem,
                       cursor: 'pointer'
@@ -297,54 +302,54 @@ const EventPage = () => {
                       setIsAttendeesModalOpen(true);
                     }}
                   >
-      <FaUsers style={styles.detailIcon} />
-      {event.attendees.length} Attendees
-    </div>
-  </div>
+                    <FaUsers style={styles.detailIcon} />
+                    {event.attendees.length} Attendees
+                  </div>
+                </div>
 
-  <div style={styles.attendeeActions}>
-    {/* Show chat button if user is creator OR an attendee */}
-    {(event.creatorId === currentUser.id || 
-      event.attendees.some(a => a.userId === currentUser.id)) && (
-      <EventChatButton
-        currentUserId={currentUser.id}
-        eventId={event._id}
-        eventName={event.name}
-        attendees={event.attendees.map(userId => ({ userId }))}
-        chatType="group"
-      />
-    )}
+                <div style={styles.attendeeActions}>
+                  {/* Show chat button if user is creator OR an attendee */}
+                  {(event.creatorId === currentUser.id ||
+                    event.attendees.some(a => a.userId === currentUser.id)) && (
+                      <EventChatButton
+                        currentUserId={currentUser.id}
+                        eventId={event._id}
+                        eventName={event.name}
+                        attendees={event.attendees.map(userId => ({ userId }))}
+                        chatType="group"
+                      />
+                    )}
 
-    {/* Show edit button only to creator */}
-    {event.creatorId === currentUser.id && (
-      <button
-        onClick={() => openEditModal(event)}
-        style={styles.editButton}
-      >
-        Edit Event
-      </button>
-    )}
+                  {/* Show edit button only to creator */}
+                  {event.creatorId === currentUser.id && (
+                    <button
+                      onClick={() => openEditModal(event)}
+                      style={styles.editButton}
+                    >
+                      Edit Event
+                    </button>
+                  )}
 
-    {/* Show join/leave button to non-creators */}
-    {event.creatorId !== currentUser.id && (
-      event.attendees.some(a => a.userId === currentUser.id) ? (
-        <button
-          onClick={() => leaveEvent(event._id)}
-          style={styles.leaveButton}
-        >
-          Leave Event
-        </button>
-      ) : (
-        <button
-          onClick={() => joinEvent(event._id)}
-          style={styles.joinButton}
-        >
-          Join Event
-        </button>
-      )
-    )}
-  </div>
-</div>
+                  {/* Show join/leave button to non-creators */}
+                  {event.creatorId !== currentUser.id && (
+                    event.attendees.some(a => a.userId === currentUser.id) ? (
+                      <button
+                        onClick={() => leaveEvent(event._id)}
+                        style={styles.leaveButton}
+                      >
+                        Leave Event
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => joinEvent(event._id)}
+                        style={styles.joinButton}
+                      >
+                        Join Event
+                      </button>
+                    )
+                  )}
+                </div>
+              </div>
             </div>
           ))}
         </div>
