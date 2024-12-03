@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  FaFilter, FaTimes, FaSort, FaUsers, FaCalendar, FaTag 
+  FaFilter, FaTimes, FaSort, FaUsers, FaTag, FaSearch, FaCheckCircle 
 } from 'react-icons/fa';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const EventFilterComponent = ({ 
   onFilterChange, 
@@ -17,30 +18,29 @@ const EventFilterComponent = ({
     ...initialFilters
   });
 
-  // Categories from your existing options
   const categories = [
-    'Sports', 'Educational', 'Job', 
-    'Campus_Life', 'Concert', 'Other'
+    { value: 'Sports', emoji: '🏀' },
+    { value: 'Educational', emoji: '📚' },
+    { value: 'Job', emoji: '💼' },
+    { value: 'Campus_Life', emoji: '🎓' },
+    { value: 'Concert', emoji: '🎵' },
+    { value: 'Other', emoji: '✨' }
   ];
 
-  // Sort options
   const sortOptions = [
-    { value: 'nearest', label: 'Nearest' },
-    { value: 'mostPopular', label: 'Most Popular' },
-    { value: 'soonest', label: 'Soonest' }
+    { value: 'nearest', label: 'Nearest', emoji: '📍' },
+    { value: 'mostPopular', label: 'Popular', emoji: '🔥' },
+    { value: 'soonest', label: 'Soonest', emoji: '⏰' }
   ];
 
-  // Effect to notify parent component of filter changes
   useEffect(() => {
-    // Convert categories to comma-separated string for backend
     const processedFilters = {
       ...filters,
       categories: filters.categories.join(',')
     };
     onFilterChange(processedFilters);
-  }, [filters]);
+  }, [filters, onFilterChange]);
 
-  // Reset all filters
   const resetFilters = () => {
     setFilters({
       categories: [],
@@ -51,19 +51,22 @@ const EventFilterComponent = ({
     });
   };
 
+  const hasActiveFilters = 
+    filters.categories.length > 0 || 
+    filters.minAttendees > 0 || 
+    filters.maxAttendees < 100 ||
+    filters.searchQuery;
+
   return (
-    <div style={styles.filterContainer}>
+    <div className="position-relative">
       <button 
+        className={`btn ${hasActiveFilters ? 'btn-primary' : 'btn-outline-primary'} d-flex align-items-center`}
         onClick={() => setIsOpen(!isOpen)}
-        style={styles.filterToggleButton}
       >
-        <FaFilter style={styles.filterIcon} />
+        <FaFilter className="me-2" />
         Filters
-        {(filters.categories.length > 0 || 
-          filters.minAttendees > 0 || 
-          filters.maxAttendees < 100 ||
-          filters.searchQuery) && (
-          <span style={styles.filterBadge}>
+        {hasActiveFilters && (
+          <span className="badge bg-light text-primary ms-2">
             {[
               ...filters.categories,
               filters.searchQuery ? 'Search' : null,
@@ -74,289 +77,154 @@ const EventFilterComponent = ({
       </button>
 
       {isOpen && (
-        <div style={styles.filterModal}>
-          <div style={styles.filterModalContent}>
-            <div style={styles.filterHeader}>
-              <h3>Filter & Sort Events</h3>
-              <button 
-                onClick={() => setIsOpen(false)}
-                style={styles.closeButton}
-              >
-                <FaTimes />
-              </button>
-            </div>
+        <div 
+          className="position-absolute top-100 end-0 bg-white shadow-lg rounded-3 p-4 mt-2"
+          style={{ width: '380px', zIndex: 1000 }}
+        >
+          <div className="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+            <h5 className="mb-0 text-primary">
+              <FaFilter className="me-2" />
+              Refine Your Events
+            </h5>
+            <button 
+              className="btn-close" 
+              onClick={() => setIsOpen(false)}
+            />
+          </div>
 
-            {/* Search Input */}
-            <div style={styles.filterSection}>
-              <h4>
-                <FaTag style={styles.sectionIcon} /> 
-                Search Events
-              </h4>
-              <input
-                type="text"
-                placeholder="Search by name or description"
-                value={filters.searchQuery}
+          {/* Search Section */}
+          <div className="mb-3">
+            <h6 className="d-flex align-items-center mb-2">
+              <FaSearch className="text-primary me-2" />
+              Search Events
+            </h6>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Find events by name"
+              value={filters.searchQuery}
+              onChange={(e) => setFilters(prev => ({
+                ...prev,
+                searchQuery: e.target.value
+              }))}
+            />
+          </div>
+
+          {/* Categories */}
+          <div className="mb-3">
+            <h6 className="d-flex align-items-center mb-2">
+              <FaTag className="text-primary me-2" />
+              Categories
+            </h6>
+            <div className="row g-2">
+              {categories.map(category => (
+                <div key={category.value} className="col-4">
+                  <button
+                    className={`btn w-100 ${
+                      filters.categories.includes(category.value) 
+                        ? 'btn-primary' 
+                        : 'btn-outline-secondary'
+                    }`}
+                    onClick={() => setFilters(prev => ({
+                      ...prev,
+                      categories: prev.categories.includes(category.value)
+                        ? prev.categories.filter(c => c !== category.value)
+                        : [...prev.categories, category.value]
+                    }))}
+                  >
+                    <span className="d-block">{category.emoji}</span>
+                    {category.value}
+                    {filters.categories.includes(category.value) && (
+                      <FaCheckCircle className="position-absolute top-0 end-0 m-1" />
+                    )}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Attendee Range */}
+          <div className="mb-3">
+            <h6 className="d-flex align-items-center mb-2">
+              <FaUsers className="text-primary me-2" />
+              Attendee Range
+            </h6>
+            <div className="d-flex align-items-center">
+              <span className="me-2">Min: {filters.minAttendees}</span>
+              <input 
+                type="range"
+                className="form-range flex-grow-1 me-2"
+                min="0"
+                max="100"
+                value={filters.minAttendees}
                 onChange={(e) => setFilters(prev => ({
                   ...prev,
-                  searchQuery: e.target.value
+                  minAttendees: Number(e.target.value)
                 }))}
-                style={styles.searchInput}
+              />
+              <span className="me-2">Max: {filters.maxAttendees}</span>
+              <input 
+                type="range"
+                className="form-range flex-grow-1"
+                min="0"
+                max="100"
+                value={filters.maxAttendees}
+                onChange={(e) => setFilters(prev => ({
+                  ...prev,
+                  maxAttendees: Number(e.target.value)
+                }))}
               />
             </div>
+          </div>
 
-            {/* Category Filter */}
-            <div style={styles.filterSection}>
-              <h4>
-                <FaTag style={styles.sectionIcon} /> 
-                Categories
-              </h4>
-              <div style={styles.categoryGrid}>
-                {categories.map(category => (
-                  <button
-                    key={category}
-                    onClick={() => setFilters(prev => ({
-                      ...prev,
-                      categories: prev.categories.includes(category)
-                        ? prev.categories.filter(c => c !== category)
-                        : [...prev.categories, category]
-                    }))}
-                    style={{
-                      ...styles.categoryButton,
-                      backgroundColor: filters.categories.includes(category) 
-                        ? '#4F46E5' 
-                        : '#E5E7EB',
-                      color: filters.categories.includes(category) 
-                        ? 'white' 
-                        : 'black'
-                    }}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
+          {/* Sort Options */}
+          <div className="mb-3">
+            <h6 className="d-flex align-items-center mb-2">
+              <FaSort className="text-primary me-2" />
+              Sort By
+            </h6>
+            <div className="btn-group w-100" role="group">
+              {sortOptions.map(option => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`btn ${
+                    filters.sortBy === option.value 
+                      ? 'btn-primary' 
+                      : 'btn-outline-secondary'
+                  }`}
+                  onClick={() => setFilters(prev => ({
+                    ...prev,
+                    sortBy: option.value
+                  }))}
+                >
+                  {option.emoji} {option.label}
+                </button>
+              ))}
             </div>
+          </div>
 
-            {/* Attendee Range */}
-            <div style={styles.filterSection}>
-              <h4>
-                <FaUsers style={styles.sectionIcon} /> 
-                Attendee Range
-              </h4>
-              <div style={styles.rangeContainer}>
-                <div style={styles.rangeLabels}>
-                  <span>Min: {filters.minAttendees}</span>
-                  <span>Max: {filters.maxAttendees}</span>
-                </div>
-                <div style={styles.dualRangeContainer}>
-                  <input 
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={filters.minAttendees}
-                    onChange={(e) => setFilters(prev => ({
-                      ...prev,
-                      minAttendees: Number(e.target.value)
-                    }))}
-                    style={{...styles.rangeSlider, marginRight: '10px'}}
-                  />
-                  <input 
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={filters.maxAttendees}
-                    onChange={(e) => setFilters(prev => ({
-                      ...prev,
-                      maxAttendees: Number(e.target.value)
-                    }))}
-                    style={styles.rangeSlider}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Sort By */}
-            <div style={styles.filterSection}>
-              <h4>
-                <FaSort style={styles.sectionIcon} /> 
-                Sort By
-              </h4>
-              <div style={styles.sortButtonContainer}>
-                {sortOptions.map(option => (
-                  <button
-                    key={option.value}
-                    onClick={() => setFilters(prev => ({
-                      ...prev,
-                      sortBy: option.value
-                    }))}
-                    style={{
-                      ...styles.sortButton,
-                      backgroundColor: filters.sortBy === option.value 
-                        ? '#4F46E5' 
-                        : '#E5E7EB',
-                      color: filters.sortBy === option.value 
-                        ? 'white' 
-                        : 'black'
-                    }}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Reset Button */}
+          {/* Action Buttons */}
+          <div className="d-flex gap-2">
             <button 
+              className="btn btn-outline-secondary w-50"
               onClick={resetFilters}
-              style={styles.resetButton}
             >
-              Reset All Filters
+              <FaTimes className="me-2" />
+              Clear All
+            </button>
+            <button 
+              className="btn btn-primary w-50"
+              onClick={() => setIsOpen(false)}
+            >
+              <FaCheckCircle className="me-2" />
+              Apply
             </button>
           </div>
         </div>
       )}
     </div>
   );
-};
-
-const styles = {
-  filterContainer: {
-    position: 'relative',
-    zIndex: 50
-  },
-  filterToggleButton: {
-    display: 'flex',
-    alignItems: 'center',
-    padding: '10px 15px',
-    backgroundColor: '#4F46E5',
-    color: 'white',
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
-  },
-  filterIcon: {
-    marginRight: '8px'
-  },
-  filterBadge: {
-    backgroundColor: 'white',
-    color: '#4F46E5',
-    borderRadius: '50%',
-    padding: '2px 6px',
-    marginLeft: '8px',
-    fontSize: '12px',
-    fontWeight: 'bold'
-  },
-  filterModal: {
-    position: 'absolute',
-    top: '100%',
-    right: 0,
-    width: '380px',
-    backgroundColor: 'white',
-    boxShadow: '0 6px 12px rgba(0,0,0,0.15)',
-    borderRadius: '12px',
-    padding: '25px',
-    marginTop: '15px',
-    border: '1px solid #E5E7EB'
-  },
-  filterModalContent: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px'
-  },
-  filterHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottom: '1px solid #E5E7EB',
-    paddingBottom: '15px'
-  },
-  closeButton: {
-    background: 'none',
-    border: 'none',
-    fontSize: '20px',
-    cursor: 'pointer',
-    color: '#6B7280'
-  },
-  filterSection: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '15px'
-  },
-  sectionIcon: {
-    marginRight: '10px',
-    color: '#4F46E5'
-  },
-  searchInput: {
-    width: '100%',
-    padding: '10px',
-    borderRadius: '8px',
-    border: '1px solid #E5E7EB',
-    fontSize: '14px'
-  },
-  categoryGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: '10px'
-  },
-  categoryButton: {
-    padding: '10px',
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    fontWeight: '500'
-  },
-  rangeContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px'
-  },
-  rangeLabels: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    fontSize: '14px',
-    color: '#6B7280'
-  },
-  dualRangeContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px'
-  },
-  rangeSlider: {
-    flex: 1,
-    appearance: 'none',
-    height: '8px',
-    background: '#E5E7EB',
-    outline: 'none',
-    opacity: 0.7,
-    transition: 'opacity 0.2s',
-    borderRadius: '5px'
-  },
-  sortButtonContainer: {
-    display: 'flex',
-    gap: '10px'
-  },
-  sortButton: {
-    flex: 1,
-    padding: '10px',
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    fontWeight: '500'
-  },
-  resetButton: {
-    width: '100%',
-    padding: '12px',
-    backgroundColor: '#F3F4F6',
-    color: '#111827',
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    fontWeight: '600'
-  }
 };
 
 export default EventFilterComponent;
