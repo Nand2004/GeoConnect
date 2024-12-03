@@ -6,6 +6,7 @@ import EventChatButton from '../chat/chatButton/eventChatButton';
 import styles from './styles/eventPageStyles';
 import mapStyles from './styles/mapStyles';
 import AttendeesModal from './eventModals/attendeesModal';
+import EventFilterComponent from './eventModals/eventFilterComponent';
 
 import { FaCalendarPlus, FaMapMarkerAlt, FaUsers, FaExclamationCircle, FaTag, FaInfoCircle, FaCheckCircle } from 'react-icons/fa';
 import getUserInfo from "../../utilities/decodeJwt";
@@ -66,6 +67,15 @@ const EventPage = () => {
     }
   }, [location, searchRadius]);
 
+  const [filters, setFilters] = useState({
+    categories: [],
+    minAttendees: 0,
+    maxAttendees: 100,
+    sortBy: 'nearest',
+    searchQuery: ''
+  });
+
+
   // Get user's current location
   const getUserLocation = () => {
     setLoading(true);
@@ -88,23 +98,32 @@ const EventPage = () => {
       : setError('Geolocation is not supported by this browser.');
   };
 
-const findNearbyEvents = async () => {
-  try {
-    const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_SERVER_URI}/event/getNearbyEvents`, {
-      params: {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        radius: searchRadius
-      },
-    });
-    setNearbyEvents(data);
-    if (data.length === 0) setMessage('No events found nearby.');
-    setLoading(false);
-  } catch (err) {
-    setError('Error finding nearby events.');
-    setLoading(false);
-  }
-};
+  const findNearbyEvents = async () => {
+    try {
+      const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_SERVER_URI}/event/getNearbyEvents`, {
+        params: {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          radius: searchRadius,
+          ...filters  // Spread all filter parameters
+        },
+      });
+      setNearbyEvents(data);
+      if (data.length === 0) setMessage('No events found nearby.');
+      setLoading(false);
+    } catch (err) {
+      setError('Error finding nearby events.');
+      setLoading(false);
+    }
+  };
+   // Trigger findNearbyEvents when filters change
+   useEffect(() => {
+    if (location.latitude && location.longitude) {
+      findNearbyEvents();
+    }
+  }, [location, searchRadius, filters]);
+
+
   // Join an event
   const joinEvent = async (eventId) => {
     try {
@@ -184,6 +203,16 @@ const findNearbyEvents = async () => {
   return (
     <div style={styles.container}>
       {/* Header Section */}
+
+      <EventFilterComponent 
+        onFilterChange={setFilters}
+        initialFilters={{
+          // Optional: provide any initial filter states
+          minAttendees: 0,
+          maxAttendees: 100
+        }}
+      />
+
       <div style={styles.header}>
         <h2 style={styles.title}>Nearby Events</h2>
 

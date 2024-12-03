@@ -360,18 +360,14 @@ function Chat() {
     e.stopPropagation();
     
     try {
-      // Check if the chat is a group chat and has an event associated
       if (chat.chatType === "group" && chat.event) {
-        // If it's an event-based group chat, remove the user from the event
         await axios.post('${process.env.REACT_APP_BACKEND_SERVER_URI}/event/leaveEvent/', {
           eventId: chat.event,
           userId: currentUser?.id
         });
         
-        // Update local state to remove this chat from the user's view
         setChatHistory((prev) => prev.filter((c) => c._id !== chatId));
         
-        // If this was the currently selected chat, reset the chat view
         if (chatId === currentUser?.id) {
           setSelectedUser(null);
           setMessages([]);
