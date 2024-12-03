@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   FaFilter, FaTimes, FaSort, FaUsers, FaTag, FaSearch, FaCheckCircle 
 } from 'react-icons/fa';
@@ -18,6 +18,9 @@ const EventFilterComponent = ({
     ...initialFilters
   });
 
+  // Create a ref for the filter container
+  const filterRef = useRef(null);
+
   const categories = [
     { value: 'Sports', emoji: '🏀' },
     { value: 'Educational', emoji: '📚' },
@@ -32,6 +35,41 @@ const EventFilterComponent = ({
     { value: 'mostPopular', label: 'Popular', emoji: '🔥' },
     { value: 'soonest', label: 'Soonest', emoji: '⏰' }
   ];
+
+  // Add outside click handler
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    // Add event listener when component mounts
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    // Cleanup event listener
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+    };
+  
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscapeKey);
+    }
+  
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     const processedFilters = {
@@ -58,7 +96,7 @@ const EventFilterComponent = ({
     filters.searchQuery;
 
   return (
-    <div className="position-relative">
+    <div className="position-relative" ref={filterRef}>
       <button 
         className={`btn ${hasActiveFilters ? 'btn-primary' : 'btn-outline-primary'} d-flex align-items-center`}
         onClick={() => setIsOpen(!isOpen)}
@@ -207,18 +245,11 @@ const EventFilterComponent = ({
           {/* Action Buttons */}
           <div className="d-flex gap-2">
             <button 
-              className="btn btn-outline-secondary w-50"
+              className="btn btn-outline-secondary w-100"
               onClick={resetFilters}
             >
               <FaTimes className="me-2" />
               Clear All
-            </button>
-            <button 
-              className="btn btn-primary w-50"
-              onClick={() => setIsOpen(false)}
-            >
-              <FaCheckCircle className="me-2" />
-              Apply
             </button>
           </div>
         </div>
