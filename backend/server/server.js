@@ -9,7 +9,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: ['http://localhost:3000', 'http://localhost:8096', 'https://main.d374vy2u3fhmok.amplifyapp.com'],
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "DELETE", "PUT", "PATCH"],
     credentials: true
   }
 });
@@ -25,7 +25,7 @@ dbConnection();
 // Middleware
 app.use(cors({ 
   origin: ['http://localhost:3000', 'http://localhost:8096', 'https://main.d374vy2u3fhmok.amplifyapp.com'],
-  methods: ["GET", "POST", "DELETE", "PUT"],
+  methods: ["GET", "POST", "DELETE", "PUT", "PATCH"],
   credentials: true
 }));
 app.use(express.json());
@@ -40,6 +40,10 @@ app.use('/user', require('./routes/user/userDeleteAll'));
 app.use('/user', require('./routes/user/userSearchUser'));
 app.use('/user', require('./routes/user/userGetUsernameByUserId'));
 app.use('/user', require('./routes/user/userGetProfileImage'));
+app.use('/user', require('./routes/user/userSetHobbies'));
+app.use('/user', require('./routes/user/userGetHobbies'));
+app.use('/user', require('./routes/user/userUpdateHobbies'));
+
 
 // Location routes 
 app.use('/user', require('./routes/location/locationUpdate'));

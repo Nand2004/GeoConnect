@@ -47,11 +47,29 @@ const newUserSchema = new mongoose.Schema(
         default: [0, 0], // Default coordinates (can be updated later)
       },
     },
+    hobbies: {
+      type: [String],
+      enum: [
+        "Traveling",
+        "Photography",
+        "Music",
+        "Reading",
+        "Sports",
+        "Gaming",
+        "Cooking",
+        "Fitness",
+        "Art",
+        "Writing"
+      ],
+      required: true,
+      validate: [arrayMinLength, 'Please select at least 3 hobbies'],
+    },
   },
-  { collection: "users" } // Same collection as before
+  { collection: "users" } 
 );
-
-// Geospatial index for querying users by location
+function arrayMinLength(val) {
+  return val.length >= 3;
+}
 newUserSchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model('users', newUserSchema);
