@@ -122,12 +122,13 @@ const Register = () => {
     <div 
       style={{
         background: 'linear-gradient(135deg, #0A192F, #112240)',
-        minHeight: '100vh',
+        minHeight: '100vh', // Subtract navbar height
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
         padding: '20px',
-        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif'
+        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif',
+        paddingTop: '74px',
       }}
     >
       <div
@@ -138,6 +139,8 @@ const Register = () => {
           padding: '50px',
           width: '100%',
           maxWidth: '700px',
+          maxHeight: 'calc(100vh - 110px)', // Ensure it fits on screen
+
           backdropFilter: 'blur(15px)',
           border: '1px solid rgba(255, 255, 255, 0.15)',
           position: 'relative',
