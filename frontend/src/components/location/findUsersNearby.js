@@ -288,6 +288,8 @@ const styles = {
     color: '#fff',
     paddingTop: "70px",
     paddingBottom: "50px",
+    overflow: 'hidden',
+
 
   },
   header: {
@@ -354,6 +356,8 @@ const styles = {
     gap: '2rem',
     maxWidth: '1400px',
     margin: '0 auto',
+    maxHeight: 'calc(100vh - 150px)', /* Adjust this based on header height */
+  overflowY: 'auto', /* Enable scroll for content */
   },
   userGrid: {
     display: 'grid',
@@ -430,6 +434,7 @@ const styles = {
     overflow: 'hidden',
     height: '100%',
     minHeight: '500px',
+    position: 'relative',
   },
   map: {
     width: '100%',

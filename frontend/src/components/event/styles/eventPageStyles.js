@@ -132,7 +132,7 @@ const styles = {
       transition: 'background-color 0.3s',
     },
     mapContainer: {
-      height: '600px',
+      flex: 1,
       borderRadius: '1rem',
       overflow: 'hidden',
     },
