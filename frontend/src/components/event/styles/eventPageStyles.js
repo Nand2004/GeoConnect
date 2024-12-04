@@ -7,9 +7,9 @@ const styles = {
       fontFamily: 'Arial, sans-serif',
       marginTop: "10px",
       paddingTop: "70px",
-      height: "100vh",
+      minHeight: "100vh",
       paddingBottom: "150px",
-  
+      overflowY: 'auto',
     },
     header: {
       marginBottom: '2rem',
