@@ -9,22 +9,32 @@ const url = `${process.env.REACT_APP_BACKEND_SERVER_URI}/user/signup`;
 
 const Register = () => {
   document.body.style.backgroundColor = "#0c0c1f"; // Set the background color
-  const [data, setData] = useState({ username: "", email: "", password: "", latitude: null, longitude: null });
+  const [data, setData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    latitude: null,
+    longitude: null,
+    hobbies: [] // New hobbies field
+  });
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const getUserLocation = () => {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        const { latitude, longitude } = position.coords;
-        setData((prevData) => ({
-          ...prevData,
-          latitude: latitude,
-          longitude: longitude,
-        }));
-      }, (error) => {
-        console.error("Error fetching location:", error);
-      });
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setData((prevData) => ({
+            ...prevData,
+            latitude: latitude,
+            longitude: longitude,
+          }));
+        },
+        (error) => {
+          console.error("Error fetching location:", error);
+        }
+      );
     } else {
       console.error("Geolocation is not supported by this browser.");
     }
@@ -39,11 +49,26 @@ const Register = () => {
     setData({ ...data, [input.name]: input.value });
   };
 
+  const handleHobbyChange = (event) => {
+    const { value, checked } = event.target;
+    setData((prevData) => {
+      const updatedHobbies = checked
+        ? [...prevData.hobbies, value]
+        : prevData.hobbies.filter((hobby) => hobby !== value);
+      return { ...prevData, hobbies: updatedHobbies };
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (data.latitude === null || data.longitude === null) {
       setError("Unable to retrieve location. Please enable location services.");
+      return;
+    }
+
+    if (data.hobbies.length < 3) {
+      setError("Please select at least 3 hobbies.");
       return;
     }
 
@@ -89,7 +114,11 @@ const Register = () => {
                       name="username"
                       onChange={handleChange}
                       placeholder="Enter username"
-                      style={{ background: "rgba(255, 255, 255, 0.1)", border: "1px solid rgba(255, 255, 255, 0.2)", color:"white" }}
+                      style={{
+                        background: "rgba(255, 255, 255, 0.1)",
+                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                        color: "white",
+                      }}
                     />
                   </Form.Group>
 
@@ -100,7 +129,11 @@ const Register = () => {
                       name="email"
                       onChange={handleChange}
                       placeholder="Enter email"
-                      style={{ background: "rgba(255, 255, 255, 0.1)", border: "1px solid rgba(255, 255, 255, 0.2)", color:"white"}}
+                      style={{
+                        background: "rgba(255, 255, 255, 0.1)",
+                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                        color: "white",
+                      }}
                     />
                   </Form.Group>
 
@@ -111,13 +144,37 @@ const Register = () => {
                       name="password"
                       onChange={handleChange}
                       placeholder="Password"
-                      style={{ background: "rgba(255, 255, 255, 0.1)", border: "1px solid rgba(255, 255, 255, 0.2)", color:"white" }}
+                      style={{
+                        background: "rgba(255, 255, 255, 0.1)",
+                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                        color: "white",
+                      }}
                     />
+                  </Form.Group>
+
+                  {/* Hobbies Section */}
+                  <Form.Group className="mb-3" controlId="formBasicHobbies">
+                    <Form.Label style={{ color: "#FFD700", fontWeight: "bold" }}>Select at least 3 hobbies</Form.Label>
+                    <div style={{ color: "#e0e0e0" }}>
+                      {["Traveling", "Photography", "Music", "Reading", "Sports", "Gaming", "Cooking", "Fitness", "Art", "Writing"].map((hobby) => (
+                        <Form.Check
+                          key={hobby}
+                          type="checkbox"
+                          label={hobby}
+                          value={hobby}
+                          onChange={handleHobbyChange}
+                          checked={data.hobbies.includes(hobby)}
+                          style={{ color: "white", fontWeight: "bold" }}
+                        />
+                      ))}
+                    </div>
                   </Form.Group>
 
                   {error && <div style={{ color: "#FF4500", fontSize: "1rem" }}>{error}</div>}
 
-                  <Button variant="outline-warning" type="submit" className="mt-3">Register</Button>
+                  <Button variant="outline-warning" type="submit" className="mt-3">
+                    Register
+                  </Button>
                 </Form>
               </Card>
             </div>

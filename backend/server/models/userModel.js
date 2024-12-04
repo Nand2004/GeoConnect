@@ -49,6 +49,7 @@ const newUserSchema = new mongoose.Schema(
     },
     hobbies: {
       type: [String],
+      required: false,
       enum: [
         "Traveling",
         "Photography",

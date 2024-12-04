@@ -10,7 +10,12 @@ router.post('/signup', async (req, res) => {
     console.log(error);
     if (error) return res.status(400).send({ message: error.errors[0].message });
 
-    const { username, email, password, latitude, longitude } = req.body;
+    const { username, email, password, latitude, longitude, hobbies } = req.body;
+
+    // Validate hobbies (should be an array with at least 3 items)
+    if (!hobbies || hobbies.length < 3) {
+        return res.status(400).send({ message: "Please select at least 3 hobbies." });
+    }
 
     // Check if username already exists
     const user = await newUserModel.findOne({ username: username });
@@ -22,7 +27,7 @@ router.post('/signup', async (req, res) => {
     // Parse the generated hash into the password
     const hashPassword = await bcrypt.hash(password, generateHash);
 
-    // Create a new user with dynamic location
+    // Create a new user with dynamic location and hobbies
     const createUser = new newUserModel({
         username: username,
         email: email,
@@ -31,6 +36,7 @@ router.post('/signup', async (req, res) => {
             type: 'Point',
             coordinates: latitude && longitude ? [parseFloat(longitude), parseFloat(latitude)] : null,
         },
+        hobbies: hobbies, // Store hobbies as an array
     });
 
     try {
