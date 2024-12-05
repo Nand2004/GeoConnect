@@ -14,6 +14,8 @@ import GeoLocation from './components/location/geoLocation'
 import FindUsersNearby from "./components/location/findUsersNearby";
 import Event from './components/event/eventPage';
 import Chat from "./components/chat/chat";
+import ForgotPassword from "./components/users/forgotPassword"
+import ResetPassword from "./components/users/resetPassword";
 export const UserContext = createContext();
 
 const App = () => {
@@ -37,6 +39,10 @@ const App = () => {
           <Route path="/findUsersNearby" element={< FindUsersNearby />} />
           <Route path="/chat" element={< Chat />} />
           <Route path='/event' element={< Event />}></Route>
+          <Route path='/forgotPassword' element={< ForgotPassword />}></Route>
+          <Route path='/resetPassword' element={< ResetPassword />}></Route>
+
+
 
         </Routes>
       </UserContext.Provider>

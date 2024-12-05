@@ -220,7 +220,7 @@ const Login = () => {
             marginBottom: '20px' 
           }}>
             <Link 
-              to="/forgot-password" 
+              to="/forgotPassword" 
               style={{ 
                 color: '#8892B0', 
                 fontSize: '0.9rem',
