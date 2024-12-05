@@ -57,7 +57,7 @@ const newUserSchema = new mongoose.Schema(
         "Reading",
         "Sports",
         "Gaming",
-        "Cooking",
+        "Movies",
         "Fitness",
         "Art",
         "Writing"
