@@ -11,7 +11,7 @@ import PrivateUserProfile from "./components/users/privateUserProfilePage";
 import { createContext, useState, useEffect } from "react";
 import getUserInfo from "./utilities/decodeJwt";
 import GeoLocation from './components/location/geoLocation'
-import FindUsersNearby from "./components/location/findUsersNearby";
+import FindUsersNearby from "./components/location/usersNearby/findUsersNearby";
 import Event from './components/event/eventPage';
 import Chat from "./components/chat/chat";
 import ForgotPassword from "./components/users/forgotPassword"
