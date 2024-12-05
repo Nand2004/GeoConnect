@@ -1,35 +1,32 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import Button from "react-bootstrap/Button";
-import Form from "react-bootstrap/Form";
-import Card from "react-bootstrap/Card";
-import Container from "react-bootstrap/Container";
-import getUserInfo from "../../utilities/decodeJwt";
+import { 
+  FaUser, 
+  FaLock, 
+  FaEye, 
+  FaEyeSlash,
+  FaMapMarkerAlt 
+} from 'react-icons/fa';
 
-const PRIMARY_COLOR = "#cc5c99";
-const SECONDARY_COLOR = "#0c0c1f";
+const PRIMARY_COLOR = "#FFA500";
+const SECONDARY_COLOR = "#0A192F";
 const url = `${process.env.REACT_APP_BACKEND_SERVER_URI}/user/login`;
 
 const Login = () => {
-  const [user, setUser] = useState(null);
   const [data, setData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
-  const [light, setLight] = useState(false);
-  const [bgColor, setBgColor] = useState(SECONDARY_COLOR);
-  const [bgText, setBgText] = useState("Light Mode");
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordFocus, setPasswordFocus] = useState(false);
   const navigate = useNavigate();
 
-  const handleChange = ({ currentTarget: input }) => {
-    setData({ ...data, [input.name]: input.value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setData(prevData => ({
+      ...prevData,
+      [name]: value
+    }));
   };
-
-  useEffect(() => {
-    const obj = getUserInfo(user);
-    setUser(obj);
-    setBgColor(light ? "white" : SECONDARY_COLOR);
-    setBgText(light ? "Dark mode" : "Light mode");
-  }, [light]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,10 +34,8 @@ const Login = () => {
       const { data: res } = await axios.post(url, data);
       const { accessToken } = res;
       localStorage.setItem("accessToken", accessToken);
-      // Reload current page and navigate to privateUserProfile
       navigate('/privateUserProfile', { replace: true });
       window.location.reload();
-
     } catch (error) {
       if (error.response && error.response.status >= 400 && error.response.status <= 500) {
         setError(error.response.data.message);
@@ -48,190 +43,274 @@ const Login = () => {
     }
   };
 
-  if (user) {
-    navigate('/privateUserProfile');
-    return null;
-  }
-
   return (
-    <Container
-      fluid
-      className="d-flex align-items-center justify-content-center position-relative"
+    <div 
       style={{
-        background: "linear-gradient(135deg, #0a0a19 0%, #1a1a4a 50%, #0a0a19 100%)",
-        color: "white",
-        minHeight: "100vh",
-        fontFamily: "Montserrat, sans-serif",
-        padding: "40px",
-        overflow: "hidden",
+        background: 'linear-gradient(135deg, #0A192F, #112240)',
+        height: '100vh', // Use 100vh instead of minHeight to fix the height
+        width: '100vw',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '50px',
+        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif',
+        position: 'fixed',
+        overflow: 'hidden'
       }}
     >
-      {/* Animated background elements */}
+      {/* Animated Background Elements */}
       <div
-        className="position-absolute"
         style={{
-          top: "-10%",
-          left: "-10%",
-          width: "300px",
-          height: "300px",
-          background:
-            "radial-gradient(circle, rgba(147, 51, 234, 0.2) 0%, rgba(147, 51, 234, 0) 70%)",
-          borderRadius: "50%",
-          filter: "blur(40px)",
-          animation: "float 10s infinite ease-in-out",
+          position: 'absolute',
+          top: '-10%',
+          left: '-10%',
+          width: '300px',
+          height: '300px',
+          background: 'radial-gradient(circle, rgba(255, 165, 0, 0.2) 0%, rgba(255, 165, 0, 0) 70%)',
+          borderRadius: '50%',
+          filter: 'blur(40px)',
+          animation: 'float 10s infinite ease-in-out'
         }}
       />
       <div
-        className="position-absolute"
         style={{
-          bottom: "-15%",
-          right: "-5%",
-          width: "400px",
-          height: "400px",
-          background:
-            "radial-gradient(circle, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0) 70%)",
-          borderRadius: "50%",
-          filter: "blur(40px)",
-          animation: "float 14s infinite ease-in-out reverse",
+          position: 'absolute',
+          right: '-5%',
+          width: '400px',
+          height: '400px',
+          background: 'radial-gradient(circle, rgba(255, 107, 107, 0.2) 0%, rgba(255, 107, 107, 0) 70%)',
+          borderRadius: '50%',
+          filter: 'blur(40px)',
+          animation: 'float 14s infinite ease-in-out reverse'
         }}
       />
 
-      <Card
+      <div
         style={{
-          background: "rgba(26, 26, 46, 0.9)",
-          backdropFilter: "blur(15px)",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-          borderRadius: "25px",
-          padding: "50px",
-          boxShadow: "0 30px 60px rgba(0, 0, 0, 0.5)",
-          width: "100%",
-          maxWidth: "500px",
-          transform: "translateY(0)",
-          transition: "all 0.4s ease",
+          background: 'rgba(17, 34, 64, 0.9)',
+          borderRadius: '15px',
+          boxShadow: '0 30px 60px rgba(0, 0, 0, 0.4)',
+          padding: '40px',
+          width: '100%',
+          maxWidth: '500px',
+          backdropFilter: 'blur(15px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)',
+          position: 'relative',
+          overflow: 'hidden',
+          zIndex: 10
         }}
       >
-        <Card.Body>
-          <Card.Title
-            style={{
-              fontSize: "42px",
-              marginBottom: "25px",
-              fontWeight: "bold",
-              background: "linear-gradient(135deg, #FFD700, #FFA500)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              textShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+        {/* Header Section */}
+        <div style={{ 
+          position: 'relative', 
+          zIndex: 1,
+          textAlign: 'center', 
+        }}>
+          <FaMapMarkerAlt 
+            style={{ 
+              fontSize: '4rem', 
+              color: PRIMARY_COLOR, 
+              marginBottom: '20px',
+              textShadow: '0 0 10px rgba(255,165,0,0.5)'
+            }} 
+          />
+          <h2 style={{ 
+            color: PRIMARY_COLOR, 
+            fontSize: '2.5rem', 
+            fontWeight: '700',
+            marginBottom: '15px'
+          }}>
+            Welcome Back
+          </h2>
+          <p style={{ 
+            color: '#8892B0', 
+            fontSize: '1.1rem',
+            maxWidth: '400px',
+            margin: '0 auto'
+          }}>
+            Connect with your passions, continue your journey
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          {/* Username Input */}
+          <div 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              background: 'rgba(255,255,255,0.05)', 
+              borderRadius: '10px',
+              padding: '12px',
+              marginBottom: '20px',
+              border: '1px solid rgba(255,255,255,0.1)',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)',
+              transition: 'all 0.3s ease'
             }}
           >
-            Log In to GeoConnect
-          </Card.Title>
-          <Form>
-            <Form.Group className="mb-4">
-              <Form.Label
-                style={{
-                  background: "linear-gradient(135deg, #FFD700, #cc5c99)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  fontWeight: "600",
-                }}
-              >
-                Username
-              </Form.Label>
-              <Form.Control
-                type="username"
-                name="username"
-                onChange={handleChange}
-                placeholder="Enter username"
-                style={{
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                  color: "white",
-                  border: "1px solid rgba(255, 255, 255, 0.2)",
-                  borderRadius: "8px",
-                  boxShadow: "0 4px 10px rgba(255, 255, 255, 0.1)",
-                }}
-              />
-            </Form.Group>
-            <Form.Group className="mb-4">
-              <Form.Label
-                style={{
-                  background: "linear-gradient(135deg, #FFD700, #cc5c99)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  fontWeight: "600",
-                }}
-              >
-                Password
-              </Form.Label>
-              <Form.Control
-                type="password"
-                name="password"
-                placeholder="Password"
-                onChange={handleChange}
-                style={{
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                  color: "white",
-                  border: "1px solid rgba(255, 255, 255, 0.2)",
-                  borderRadius: "8px",
-                  boxShadow: "0 4px 10px rgba(255, 255, 255, 0.1)",
-                }}
-              />
-            </Form.Group>
-            <Form.Text className="text-muted mb-4 d-block" style={{ color: "black", fontSize: '16px' }}>
-              Don’t have an account?{" "}
-              <Link to="/signup" 
-                  style={{ 
-                    background: "linear-gradient(135deg, #FFD700, #cc5c99)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    fontWeight: "600",
-                    fontSize: '19px',
-
-                  }}>
-                    Sign up
-              </Link>
-            </Form.Text>
-            {error && <div style={{ color: PRIMARY_COLOR }}>{error}</div>}
-            <Button
-              variant="primary"
-              type="submit"
-              onClick={handleSubmit}
+            <FaUser style={{ color: PRIMARY_COLOR, marginRight: '15px', fontSize: '1.2rem' }} />
+            <input
+              type="text"
+              name="username"
+              value={data.username}
+              placeholder="Enter your username"
+              onChange={handleChange}
               style={{
-                background: "transparent",
-                color: "#FFD700",
-                borderWidth: "2px",
-                borderColor: "#FFD700",
-                fontSize: "20px",
-                padding: "12px 35px",
-                borderRadius: "10px",
-                fontWeight: "700",
-                transition: "all 0.3s ease",
+                background: 'transparent',
+                border: 'none',
+                color: 'white',
+                flex: 1,
+                outline: 'none',
+                fontSize: '1rem'
               }}
-              className="w-100"
-            >
-              Log In
-            </Button>
-          </Form>
-        </Card.Body>
-      </Card>
+            />
+          </div>
 
+          {/* Password Input */}
+          <div 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              background: 'rgba(255,255,255,0.05)', 
+              borderRadius: '10px',
+              padding: '12px',
+              marginBottom: '10px',
+              border: '1px solid rgba(255,255,255,0.1)',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)',
+              transition: 'all 0.3s ease',
+              ...(passwordFocus ? {
+                boxShadow: `0 0 15px rgba(255, 165, 0, 0.5)`,
+                border: `1px solid ${PRIMARY_COLOR}40`
+              } : {})
+            }}
+          >
+            <FaLock style={{ color: PRIMARY_COLOR, marginRight: '15px', fontSize: '1.2rem' }} />
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              value={data.password}
+              placeholder="Enter your password"
+              onChange={handleChange}
+              onFocus={() => setPasswordFocus(true)}
+              onBlur={() => setPasswordFocus(false)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'white',
+                flex: 1,
+                outline: 'none',
+                fontSize: '1rem'
+              }}
+            />
+            {showPassword ? (
+              <FaEyeSlash 
+                onClick={() => setShowPassword(false)}
+                style={{ color: PRIMARY_COLOR, cursor: 'pointer', fontSize: '1.2rem' }}
+              />
+            ) : (
+              <FaEye 
+                onClick={() => setShowPassword(true)}
+                style={{ color: PRIMARY_COLOR, cursor: 'pointer', fontSize: '1.2rem' }}
+              />
+            )}
+          </div>
+
+          {/* Forgot Password */}
+          <div style={{ 
+            textAlign: 'right', 
+            marginBottom: '20px' 
+          }}>
+            <Link 
+              to="/forgot-password" 
+              style={{ 
+                color: '#8892B0', 
+                fontSize: '0.9rem',
+                textDecoration: 'none',
+                transition: 'color 0.3s ease'
+              }}
+              onMouseOver={(e) => e.target.style.color = PRIMARY_COLOR}
+              onMouseOut={(e) => e.target.style.color = '#8892B0'}
+            >
+              Forgot Password?
+            </Link>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div 
+              style={{ 
+                color: '#FF6B6B', 
+                background: 'rgba(255, 107, 107, 0.1)', 
+                padding: '15px', 
+                borderRadius: '10px', 
+                marginBottom: '40px',
+                textAlign: 'center',
+                border: '1px solid rgba(255, 107, 107, 0.2)'
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            style={{
+              width: '100%',
+              padding: '15px',
+              background: 'linear-gradient(135deg, #FFA500, #FF6B6B)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '10px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              e.target.style.transform = 'scale(1.05)';
+              e.target.style.boxShadow = '0 10px 20px rgba(255, 165, 0, 0.3)';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.transform = 'scale(1)';
+              e.target.style.boxShadow = 'none';
+            }}
+          >
+            Log In
+          </button>
+
+          {/* Sign Up Link */}
+          <div 
+            style={{ 
+              marginTop: '20px', 
+              textAlign: 'center', 
+              color: '#8892B0' 
+            }}
+          >
+            Don't have an account? {' '}
+            <Link 
+              to="/signup"
+              style={{ 
+                color: PRIMARY_COLOR,
+                fontWeight: 'bold',
+                textDecoration: 'none',
+                transition: 'color 0.3s ease'
+              }}
+              onMouseOver={(e) => e.target.style.color = '#FF6B6B'}
+              onMouseOut={(e) => e.target.style.color = PRIMARY_COLOR}
+            >
+              Sign Up
+            </Link>
+          </div>
+        </form>
+      </div>
+
+      {/* Global Styles */}
       <style jsx="true">{`
         @keyframes float {
-          0%,
-          100% {
-            transform: translate(0, 0);
-          }
-          50% {
-            transform: translate(20px, 20px);
-          }
-        }
-
-        .action-button:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 15px 25px rgba(255, 215, 0, 0.4);
-          border-color: #ffd700;
-          color: #ffd700;
+          0%, 100% { transform: translate(0, 0); }
+          50% { transform: translate(20px, 20px); }
         }
       `}</style>
-    </Container>
+    </div>
   );
 };
 
