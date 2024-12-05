@@ -21,6 +21,11 @@ router.post('/signup', async (req, res) => {
     const user = await newUserModel.findOne({ username: username });
     if (user) return res.status(409).send({ message: "Username is taken, pick another" });
 
+    // Check if username already exists
+    const userEmail = await newUserModel.findOne({ email : email });
+    if (userEmail) return res.status(409).send({ message: "Account already exists ! Please login ! " })
+
+
     // Generate the hash
     const generateHash = await bcrypt.genSalt(Number(10));
 
