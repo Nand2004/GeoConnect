@@ -19,7 +19,7 @@ import {
   ChevronRight
 } from "lucide-react";
 
-const PrivateUserProfile = () => {
+const ProfilePage = () => {
   const [show, setShow] = useState(false);
   const [user, setUser] = useState({});
   const [imageFile, setImageFile] = useState(null);
@@ -558,4 +558,4 @@ const styles = {
   },
 };
 
-export default PrivateUserProfile;
+export default ProfilePage;

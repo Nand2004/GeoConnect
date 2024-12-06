@@ -65,7 +65,7 @@ const NavigationBar = () => {
   }, [socket, currentUser]);
 
   const navLinks = [
-    { href: "/privateUserProfile", label: "Profile" },
+    { href: "/profilePage", label: "Profile" },
     { href: "/event", label: "Event" },
     { href: "/findUsersNearby", label: "Users Nearby" },
     { href: "/chat", label: "Chat" },
