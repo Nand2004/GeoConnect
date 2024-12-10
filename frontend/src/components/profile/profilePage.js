@@ -19,9 +19,10 @@ import {
   ChevronRight,
   Edit
 } from "lucide-react";
-import { FaGlobeAmericas, FaCamera, FaMusic, FaBook, FaFutbol, 
+import {
+  FaGlobeAmericas, FaCamera, FaMusic, FaBook, FaFutbol,
   FaGamepad, FaFilm, FaDumbbell, FaPalette, FaPen,
-  FaHiking, FaPlaneDeparture, FaCookieBite, FaPuzzlePiece 
+  FaHiking, FaPlaneDeparture, FaCookieBite, FaPuzzlePiece
 } from 'react-icons/fa';
 
 const hobbyIcons = {
@@ -49,8 +50,8 @@ const HobbiesModal = ({ show, handleClose, userId, currentHobbies = [], onHobbie
   }, [show, currentHobbies]);
 
   const toggleHobby = (hobby) => {
-    setSelectedHobbies(prev => 
-      prev.includes(hobby) 
+    setSelectedHobbies(prev =>
+      prev.includes(hobby)
         ? prev.filter(h => h !== hobby)
         : [...prev, hobby]
     );
@@ -105,29 +106,29 @@ const HobbiesModal = ({ show, handleClose, userId, currentHobbies = [], onHobbie
   };
 
   return (
-    <Modal 
-      show={show} 
-      onHide={handleClose} 
-      centered 
+    <Modal
+      show={show}
+      onHide={handleClose}
+      centered
       size="lg"
-      style={{ 
-        background: 'rgba(0,0,0,0.5)' 
+      style={{
+        background: 'rgba(0,0,0,0.5)'
       }}
     >
-      <Modal.Header 
-        closeButton 
-        style={{ 
-          background: 'linear-gradient(135deg, #1a1a3a, #2b2d42)', 
-          color: 'white' 
+      <Modal.Header
+        closeButton
+        style={{
+          background: 'linear-gradient(135deg, #1a1a3a, #2b2d42)',
+          color: 'white'
         }}
       >
         <Modal.Title>Edit Your Hobbies</Modal.Title>
       </Modal.Header>
-      <Modal.Body 
-        style={{ 
-          background: '#1a1a3a', 
+      <Modal.Body
+        style={{
+          background: '#1a1a3a',
           color: 'white',
-          padding: '20px' 
+          padding: '20px'
         }}
       >
         <p>Select at least 3 hobbies that represent you:</p>
@@ -136,7 +137,7 @@ const HobbiesModal = ({ show, handleClose, userId, currentHobbies = [], onHobbie
             const Icon = hobbyIcons[hobby];
             const isSelected = selectedHobbies.includes(hobby);
             return (
-              <div 
+              <div
                 key={hobby}
                 style={{
                   ...styles.hobbyButton,
@@ -144,11 +145,11 @@ const HobbiesModal = ({ show, handleClose, userId, currentHobbies = [], onHobbie
                 }}
                 onClick={() => toggleHobby(hobby)}
               >
-                <Icon 
+                <Icon
                   style={{
                     ...styles.hobbyIcon,
                     color: isSelected ? '#61dafb' : '#8888a0'
-                  }} 
+                  }}
                 />
                 <span>{hobby}</span>
               </div>
@@ -156,28 +157,28 @@ const HobbiesModal = ({ show, handleClose, userId, currentHobbies = [], onHobbie
           })}
         </div>
       </Modal.Body>
-      <Modal.Footer 
-        style={{ 
-          background: '#1a1a3a', 
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)' 
+      <Modal.Footer
+        style={{
+          background: '#1a1a3a',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)'
         }}
       >
-        <Button 
-          variant="secondary" 
+        <Button
+          variant="secondary"
           onClick={handleClose}
-          style={{ 
-            background: 'rgba(255, 255, 255, 0.1)', 
-            border: 'none' 
+          style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            border: 'none'
           }}
         >
           Cancel
         </Button>
-        <Button 
-          variant="primary" 
+        <Button
+          variant="primary"
           onClick={handleSaveHobbies}
-          style={{ 
-            background: 'linear-gradient(135deg, #61dafb, #cc5c99)', 
-            border: 'none' 
+          style={{
+            background: 'linear-gradient(135deg, #61dafb, #cc5c99)',
+            border: 'none'
           }}
         >
           Save Hobbies
@@ -248,23 +249,11 @@ const ProfilePage = () => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setProfileImage(response.data.imageUri);
+      setImageFile(null);
       alert('Profile image uploaded successfully!');
     } catch (error) {
       console.error('Error uploading profile image:', error);
       alert('Error uploading profile image');
-    }
-  };
-
-  const removeProfileImage = async () => {
-    try {
-      await axios.post(`${process.env.REACT_APP_BACKEND_SERVER_URI}/image/profileImageRemove`, {
-        name: user.username,
-      });
-      setProfileImage("default-profile-image-url");
-      alert('Profile image removed successfully!');
-    } catch (error) {
-      console.error('Error removing profile image:', error);
-      alert('Error removing profile image');
     }
   };
 
@@ -286,14 +275,14 @@ const ProfilePage = () => {
   const { id, email, username } = user;
 
   const stats = [
-    { 
-      icon: Users, 
-      label: 'Hobbies', 
-      value: hobbies.length, 
+    {
+      icon: Users,
+      label: 'Hobbies',
+      value: hobbies.length,
       renderIcons: () => hobbies.slice(0, 3).map(hobby => {
         const Icon = hobbyIcons[hobby];
         return Icon ? <Icon key={hobby} style={styles.statIcon} size={20} /> : null;
-      }) 
+      })
     },
     { icon: MessageSquare, label: 'Chats', value: 12 },
     { icon: MapPin, label: 'Found Nearby', value: 3 }
@@ -304,7 +293,7 @@ const ProfilePage = () => {
       setShowHobbiesModal(true);
     }
     else if (label === 'Chats') {
-      navigate('/chat'); 
+      navigate('/chat');
     }
     else if (label === 'Found Nearby') {
       navigate('/findUsersNearby');
@@ -315,146 +304,176 @@ const ProfilePage = () => {
     <div style={styles.profileContainer}>
       <div style={styles.profileCard}>
         <div style={styles.topBar}>
-          <div style={styles.badge}>
-            <Crown size={14} style={{ marginRight: '5px' }} />
-            Premium
-          </div>
+
         </div>
 
         <div style={styles.profileContent}>
           <div style={styles.profileHeader}>
             <div style={styles.imageWrapper}>
-              <div style={styles.imageContainer}>
-                <img src={profileImage} alt="Profile" style={styles.profilePic} />
-                <div style={styles.imageOverlay}>
-                  <input
-                    type="file"
-                    onChange={handleImageChange}
-                    style={styles.fileInput} // Hidden input
-                    id="fileInput"
-                    accept="image/*"
-                  />
-                  <Button
-                    variant="outline-light"
-                    onClick={uploadProfileImage}
-                    style={styles.uploadButton}
-                  >
-                    Upload Profile Image
-                  </Button>
-                  <label
-                    htmlFor="fileInput"
-                    style={styles.uploadLabel}
-                    title="Click to upload image"
-                  >
-                    <Camera size={24} color="#fff" />
-                  </label>
+              <div
+                style={styles.imageContainer}
+                onClick={() => document.getElementById('fileInput').click()}
+              >
+                <img
+                  src={profileImage}
+                  alt="Profile"
+                  style={{
+                    ...styles.profilePic,
+                    cursor: 'pointer',
+                    transition: 'opacity 0.3s ease'
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    background: 'rgba(0,0,0,0.5)',
+                    opacity: 0,
+                    transition: 'opacity 0.3s ease',
+                    borderRadius: '50%',
+                    '&:hover': {
+                      opacity: 1
+                    }
+                  }}
+                >
+                  <Camera size={32} color="#fff" />
                 </div>
               </div>
               <div style={styles.imageGlow}></div>
             </div>
+
+            {imageFile && (
+              <div style={{
+                marginTop: '15px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}>
+                <Button
+                  variant="primary"
+                  onClick={uploadProfileImage}
+                  style={{
+                    background: 'linear-gradient(135deg, #61dafb, #cc5c99)',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '10px'
+                  }}
+                >
+                  Upload Selected Image
+                </Button>
+              </div>
+            )}
+
+            <input
+              type="file"
+              onChange={handleImageChange}
+              style={{ display: 'none' }}
+              id="fileInput"
+              accept="image/*"
+            />
           </div>
         </div>
-
-
 
         <div style={styles.userInfo}>
           <h2 style={styles.username}>{username}</h2>
           <span style={styles.handle}>@{username}</span>
-          <div style={styles.verifiedBadge}>
-            <BadgeCheck size={16} style={{ marginRight: '5px' }} />
-            Verified Profile
-          </div>
         </div>
-      <div>
+        <div>
 
-      <div style={styles.quickStats}>
-          {stats.map(({ icon: Icon, label, value, renderIcons }) => (
-            <div key={label} style={styles.quickStat} onClick={() => handleStatsClick(label)}>
-              {label === 'Hobbies' ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={styles.quickStats}>
+            {stats.map(({ icon: Icon, label, value, renderIcons }) => (
+              <div key={label} style={styles.quickStat} onClick={() => handleStatsClick(label)}>
+                {label === 'Hobbies' ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Icon size={20} style={styles.statIcon} />
+                    {renderIcons && renderIcons()}
+                    {hobbies.length === 0 && (
+                      <Edit size={16} style={{ color: '#61dafb', marginLeft: '5px' }} />
+                    )}
+                  </div>
+                ) : (
                   <Icon size={20} style={styles.statIcon} />
-                  {renderIcons && renderIcons()}
-                  {hobbies.length === 0 && (
-                    <Edit size={16} style={{ color: '#61dafb', marginLeft: '5px' }} />
-                  )}
+                )}
+                <span style={styles.quickStatNumber}>{value}</span>
+                <span style={styles.quickStatLabel}>{label}</span>
+              </div>
+            ))}
+          </div>
+
+          <HobbiesModal
+            show={showHobbiesModal}
+            handleClose={() => setShowHobbiesModal(false)}
+            userId={id}
+            currentHobbies={hobbies}
+            onHobbiesUpdate={handleHobbiesUpdate}
+          />
+
+          <div style={styles.mainContent}>
+            <div style={styles.infoSection}>
+              <h3 style={styles.sectionTitle}>Profile Information</h3>
+              <div style={styles.infoGrid}>
+                <div style={styles.infoCard}>
+                  <User size={24} style={styles.cardIcon} />
+                  <div style={styles.cardContent}>
+                    <span style={styles.infoLabel}>User ID</span>
+                    <span style={styles.infoValue}>{id}</span>
+                  </div>
+                  <ChevronRight size={20} style={styles.chevron} />
                 </div>
-              ) : (
-                <Icon size={20} style={styles.statIcon} />
-              )}
-              <span style={styles.quickStatNumber}>{value}</span>
-              <span style={styles.quickStatLabel}>{label}</span>
-            </div>
-          ))}
-      </div>
-
-      <HobbiesModal 
-        show={showHobbiesModal}
-        handleClose={() => setShowHobbiesModal(false)}
-        userId={id}
-        currentHobbies={hobbies}
-        onHobbiesUpdate={handleHobbiesUpdate}
-      />
-
-      <div style={styles.mainContent}>
-        <div style={styles.infoSection}>
-          <h3 style={styles.sectionTitle}>Profile Information</h3>
-          <div style={styles.infoGrid}>
-            <div style={styles.infoCard}>
-              <User size={24} style={styles.cardIcon} />
-              <div style={styles.cardContent}>
-                <span style={styles.infoLabel}>User ID</span>
-                <span style={styles.infoValue}>{id}</span>
+                <div style={styles.infoCard}>
+                  <Mail size={24} style={styles.cardIcon} />
+                  <div style={styles.cardContent}>
+                    <span style={styles.infoLabel}>Email</span>
+                    <span style={styles.infoValue}>{email}</span>
+                  </div>
+                  <ChevronRight size={20} style={styles.chevron} />
+                </div>
               </div>
-              <ChevronRight size={20} style={styles.chevron} />
             </div>
-            <div style={styles.infoCard}>
-              <Mail size={24} style={styles.cardIcon} />
-              <div style={styles.cardContent}>
-                <span style={styles.infoLabel}>Email</span>
-                <span style={styles.infoValue}>{email}</span>
-              </div>
-              <ChevronRight size={20} style={styles.chevron} />
+
+            <div style={styles.actionsGrid}>
+              <button style={styles.actionButton} onClick={() => alert("Coming soon!")}>
+                <Lock size={20} />
+                Privacy Settings
+              </button>
+              <button style={styles.actionButton} onClick={() => alert("Coming soon!")}>
+                <Settings size={20} />
+                Edit Profile
+              </button>
+              <button style={{ ...styles.actionButton, ...styles.logoutButton }} onClick={handleShow}>
+                <LogOut size={20} />
+                Log Out
+              </button>
             </div>
           </div>
         </div>
-
-        <div style={styles.actionsGrid}>
-          <button style={styles.actionButton} onClick={() => alert("Coming soon!")}>
-            <Lock size={20} />
-            Privacy Settings
-          </button>
-          <button style={styles.actionButton} onClick={() => alert("Coming soon!")}>
-            <Settings size={20} />
-            Edit Profile
-          </button>
-          <button style={{ ...styles.actionButton, ...styles.logoutButton }} onClick={handleShow}>
-            <LogOut size={20} />
-            Log Out
-          </button>
-        </div>
-      </div>
-    </div>
       </div >
 
-  <Modal show={show} onHide={handleClose} backdrop="static" keyboard={false} centered>
-    <Modal.Header closeButton style={styles.modalHeader}>
-      <Modal.Title>Ready to leave?</Modal.Title>
-    </Modal.Header>
-    <Modal.Body style={styles.modalBody}>
-      <div style={styles.modalContent}>
-        <LogOut size={48} style={styles.modalIcon} />
-        <p>Are you sure you want to log out?</p>
-      </div>
-    </Modal.Body>
-    <Modal.Footer style={styles.modalFooter}>
-      <Button variant="secondary" onClick={handleClose} style={styles.modalButton}>
-        Stay
-      </Button>
-      <Button variant="primary" onClick={handleLogout} style={styles.modalLogoutButton}>
-        Log Out
-      </Button>
-    </Modal.Footer>
-  </Modal>
+      <Modal show={show} onHide={handleClose} backdrop="static" keyboard={false} centered>
+        <Modal.Header closeButton style={styles.modalHeader}>
+          <Modal.Title>Ready to leave?</Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={styles.modalBody}>
+          <div style={styles.modalContent}>
+            <LogOut size={48} style={styles.modalIcon} />
+            <p>Are you sure you want to log out?</p>
+          </div>
+        </Modal.Body>
+        <Modal.Footer style={styles.modalFooter}>
+          <Button variant="secondary" onClick={handleClose} style={styles.modalButton}>
+            Stay
+          </Button>
+          <Button variant="primary" onClick={handleLogout} style={styles.modalLogoutButton}>
+            Log Out
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div >
   );
 };
@@ -484,6 +503,8 @@ const styles = {
     padding: "15px 25px",
     background: "linear-gradient(to right, rgba(97, 218, 251, 0.1), rgba(204, 92, 153, 0.1))",
     borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+    alignItems: "center",
+    display: 'relative',
   },
   badge: {
     background: "linear-gradient(135deg, #61dafb, #cc5c99)",
@@ -496,16 +517,25 @@ const styles = {
   },
   profileContent: {
     padding: "30px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
   },
   imageWrapper: {
     position: "relative",
     marginBottom: "30px",
+    alignItems: "center", // Center image wrapper
+    width: "100%",
   },
   imageContainer: {
     width: "150px",
     height: "150px",
     position: "relative",
     zIndex: "1",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center", // Center image wrapper
+    width: "100%",
   },
   profilePic: {
     width: "150px",
@@ -519,6 +549,7 @@ const styles = {
     position: "absolute",
     top: "0",
     left: "0",
+    bottom: "-20px",
     width: "150px",
     height: "150px",
     borderRadius: "50%",
@@ -767,7 +798,6 @@ const styles = {
       transform: "translateY(-5px)",
       background: "rgba(255, 255, 255, 0.05)",
     },
-    
   },
 };
 
