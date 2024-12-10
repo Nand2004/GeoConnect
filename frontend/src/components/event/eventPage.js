@@ -60,12 +60,6 @@ const EventPage = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch nearby events when location changes
-  useEffect(() => {
-    if (location.latitude && location.longitude) {
-      findNearbyEvents();
-    }
-  }, [location, searchRadius]);
 
   const [filters, setFilters] = useState({
     categories: [],
@@ -227,7 +221,7 @@ const EventPage = () => {
             <input
               type="range"
               min="100"
-              max="1000"
+              max="3000"
               step="100"
               value={searchRadius}
               onChange={(e) => setSearchRadius(Number(e.target.value))}
