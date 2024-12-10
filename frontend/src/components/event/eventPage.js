@@ -29,6 +29,16 @@ const EventPage = () => {
     dateTime: '',
   });
 
+  const [hoveredEmojiEventId, setHoveredEmojiEventId] = useState(null);
+  const categoryEmojis = {
+    'Sports': '🏀',
+    'Educational': '📚',
+    'Job': '💼',
+    'Campus_Life': '🎓',
+    'Concert': '🎵',
+    'Other': '✨'
+  };
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedEventForEdit, setSelectedEventForEdit] = useState(null);
   const [isAttendeesModalOpen, setIsAttendeesModalOpen] = useState(false);
@@ -260,16 +270,34 @@ const EventPage = () => {
       <div style={styles.content}>
         {/* Events Grid */}
         <div style={styles.eventGrid}>
-          {nearbyEvents.map((event, index) => (
-            <div
-              key={index}
-              style={styles.eventCard}
-              onClick={() => setSelectedEvent(event)}
-            >
-              <div style={styles.eventCardHeader}>
-                <h3 style={styles.eventCardTitle}>{event.name}</h3>
-                <div style={styles.eventCategory}>{event.category}</div>
+        {nearbyEvents.map((event, index) => (
+          <div
+            key={index}
+            style={styles.eventCard}
+            onClick={() => setSelectedEvent(event)}
+          >
+            <div style={styles.eventCardHeader}>
+              <h3 style={styles.eventCardTitle}>{event.name}</h3>
+              <div 
+                style={{
+                  ...styles.eventCategory,
+                  position: 'relative', // For positioning the hover text
+                }}
+              >
+                <span
+                  onMouseEnter={() => setHoveredEmojiEventId(event._id)}
+                  onMouseLeave={() => setHoveredEmojiEventId(null)}
+                  style={{
+                    position: 'relative',
+                    display: 'inline-block'
+                  }}
+                >
+                  {hoveredEmojiEventId === event._id 
+                    ? event.category 
+                    : categoryEmojis[event.category] || event.category}
+                </span>
               </div>
+            </div>
 
 
               <div style={styles.eventCardContent}>
