@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, mapRef } from 'react';
 import axios from 'axios';
-import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
+import { GoogleMap, LoadScript, Marker, InfoWindow, Circle } from '@react-google-maps/api';
 import EditEventModal from './eventModals/editEventModal';
 import EventChatButton from '../chat/chatButton/eventChatButton';
 import styles from './styles/eventPageStyles';
@@ -54,6 +54,7 @@ const EventPage = () => {
   };
 
   const googleMapsApiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+  const [mapZoom, setMapZoom] = useState(14);
 
   // Get user info on component mount
   useEffect(() => {
@@ -270,34 +271,34 @@ const EventPage = () => {
       <div style={styles.content}>
         {/* Events Grid */}
         <div style={styles.eventGrid}>
-        {nearbyEvents.map((event, index) => (
-          <div
-            key={index}
-            style={styles.eventCard}
-            onClick={() => setSelectedEvent(event)}
-          >
-            <div style={styles.eventCardHeader}>
-              <h3 style={styles.eventCardTitle}>{event.name}</h3>
-              <div 
-                style={{
-                  ...styles.eventCategory,
-                  position: 'relative', // For positioning the hover text
-                }}
-              >
-                <span
-                  onMouseEnter={() => setHoveredEmojiEventId(event._id)}
-                  onMouseLeave={() => setHoveredEmojiEventId(null)}
+          {nearbyEvents.map((event, index) => (
+            <div
+              key={index}
+              style={styles.eventCard}
+              onClick={() => setSelectedEvent(event)}
+            >
+              <div style={styles.eventCardHeader}>
+                <h3 style={styles.eventCardTitle}>{event.name}</h3>
+                <div
                   style={{
-                    position: 'relative',
-                    display: 'inline-block'
+                    ...styles.eventCategory,
+                    position: 'relative', // For positioning the hover text
                   }}
                 >
-                  {hoveredEmojiEventId === event._id 
-                    ? event.category 
-                    : categoryEmojis[event.category] || event.category}
-                </span>
+                  <span
+                    onMouseEnter={() => setHoveredEmojiEventId(event._id)}
+                    onMouseLeave={() => setHoveredEmojiEventId(null)}
+                    style={{
+                      position: 'relative',
+                      display: 'inline-block'
+                    }}
+                  >
+                    {hoveredEmojiEventId === event._id
+                      ? event.category
+                      : categoryEmojis[event.category] || event.category}
+                  </span>
+                </div>
               </div>
-            </div>
 
 
               <div style={styles.eventCardContent}>
@@ -396,12 +397,27 @@ const EventPage = () => {
         {/* Map Section */}
         {location.latitude && location.longitude && (
           <div style={styles.mapContainer}>
-            <LoadScript googleMapsApiKey={googleMapsApiKey}>
+            <LoadScript googleMapsApiKey={googleMapsApiKey} libraries={['drawing', 'places']} >
+
               <GoogleMap
                 center={{ lat: location.latitude, lng: location.longitude }}
-                zoom={14}
+                zoom={mapZoom}
                 mapContainerStyle={styles.map}
-                options={{ styles: mapStyles }}
+                options={{
+                  styles: mapStyles,
+                  fullscreenControl: false,
+                  streetViewControl: false,
+                  mapTypeControl: false,
+                  draggable: true,
+                  zoomControl: true,
+                  scrollwheel: true,
+                  disableDoubleClickZoom: false
+                }}
+                onZoomChanged={(map) => {
+                  if (map) {
+                    setMapZoom(map.getZoom());
+                  }
+                }}
               >
                 {/* User's Location Marker */}
                 <Marker
@@ -424,15 +440,35 @@ const EventPage = () => {
                       lng: event.location.coordinates[0]
                     }}
                     icon={{
-                      path: "M-20,0a20,20 0 1,0 40,0a20,20 0 1,0 -40,0",
-                      fillColor: '#EC4899',
-                      fillOpacity: 0.6,
-                      strokeWeight: 0,
-                      scale: 0.3
+                      scale: mapZoom > 12 ? 8 : 5,
+                      fillColor: event.attendees.length > 10 ? '#FF6B6B' : '#4ECDC4',
+                      fillOpacity: 0.7,
+                      strokeWeight: 1,
+                      strokeColor: '#FFFFFF'
                     }}
-                    onClick={() => setSelectedEvent(event)}
+                    onClick={() => {
+                      setSelectedEvent(event);
+                      // Optional: Center map on clicked event
+                      mapRef.current.panTo({
+                        lat: event.location.coordinates[1],
+                        lng: event.location.coordinates[0]
+                      });
+                    }}
                   />
                 ))}
+
+                {/* Radius Visualization */}
+                <Circle
+                  center={{ lat: location.latitude, lng: location.longitude }}
+                  radius={searchRadius}
+                  options={{
+                    strokeColor: '#4F46E5',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
+                    fillColor: '#4F46E5',
+                    fillOpacity: 0.1
+                  }}
+                />
 
                 {/* Event Info Window */}
                 {selectedEvent && (
@@ -443,16 +479,60 @@ const EventPage = () => {
                     }}
                     onCloseClick={() => setSelectedEvent(null)}
                   >
-                    <div style={styles.infoWindow}>
-                      <h3 style={styles.infoTitle}>{selectedEvent.name}</h3>
-                      <p style={styles.infoDetails}>
-                        <FaInfoCircle style={styles.infoIcon} />
-                        {selectedEvent.description}
-                      </p>
-                      <p style={styles.infoDetails}>
-                        <FaTag style={styles.infoIcon} />
-                        {selectedEvent.category}
-                      </p>
+                    <div style={styles.infoWindowContainer}>
+                      <div style={styles.infoWindowHeader}>
+                        <h3 style={styles.infoWindowTitle}>{selectedEvent.name}</h3>
+                        <span style={styles.infoWindowCategory}>
+                          {categoryEmojis[selectedEvent.category]} {selectedEvent.category}
+                        </span>
+                      </div>
+
+                      <div style={styles.infoWindowDetails}>
+                        <div style={styles.infoWindowDetailItem}>
+                          <FaUsers style={styles.infoIcon} />
+                          {selectedEvent.attendees.length} Attendees
+                        </div>
+                        <div style={styles.infoWindowDetailItem}>
+                          <FaMapMarkerAlt style={styles.infoIcon} />
+                          {calculateDistance(
+                            location.latitude,
+                            location.longitude,
+                            selectedEvent.location.coordinates[1],
+                            selectedEvent.location.coordinates[0]
+                          ).toFixed(0)}m away
+                        </div>
+                      </div>
+
+                      <div style={styles.infoWindowActions}>
+                        {currentUser && (
+                          <>
+                            {selectedEvent.creatorId === currentUser.id ? (
+                              <button
+                                style={styles.infoWindowEditButton}
+                                onClick={() => openEditModal(selectedEvent)}
+                              >
+                                Edit Event
+                              </button>
+                            ) : (
+                              selectedEvent.attendees.some(a => a.userId === currentUser.id) ? (
+                                <button
+                                  style={styles.infoWindowLeaveButton}
+                                  onClick={() => leaveEvent(selectedEvent._id)}
+                                >
+                                  Leave Event
+                                </button>
+                              ) : (
+                                <button
+                                  style={styles.infoWindowJoinButton}
+                                  onClick={() => joinEvent(selectedEvent._id)}
+                                >
+                                  Join Event
+                                </button>
+                              )
+                            )}
+                          </>
+                        )}
+                      </div>
                     </div>
                   </InfoWindow>
                 )}

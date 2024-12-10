@@ -247,12 +247,51 @@ const styles = {
     },
     infoDetails: {
       display: 'flex',
+      color: 'black',
       alignItems: 'center',
       gap: '0.5rem',
       margin: '0.5rem 0',
     },
     infoIcon: {
       color: '#4F46E5',
+    },
+    infoWindowContainer: {
+      maxWidth: '300px',
+      color: 'black',
+
+      padding: '15px',
+      fontFamily: 'Arial, sans-serif'
+    },
+    infoWindowHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '10px'
+    },
+    infoWindowTitle: {
+      margin: 0,
+      fontSize: '18px',
+      fontWeight: 'bold'
+    },
+    infoWindowCategory: {
+      backgroundColor: '#f0f0f0',
+      padding: '5px 10px',
+      borderRadius: '15px',
+      fontSize: '12px'
+    },
+    infoWindowDetails: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      marginBottom: '15px'
+    },
+    infoWindowDetailItem: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '5px'
+    },
+    infoWindowActions: {
+      display: 'flex',
+      justifyContent: 'space-between'
     },
   };
 
