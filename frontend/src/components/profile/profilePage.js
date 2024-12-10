@@ -16,14 +16,184 @@ import {
   Users,
   MessageSquare,
   MapPin,
-  ChevronRight
+  ChevronRight,
+  Edit
 } from "lucide-react";
+import { FaGlobeAmericas, FaCamera, FaMusic, FaBook, FaFutbol, 
+  FaGamepad, FaFilm, FaDumbbell, FaPalette, FaPen,
+  FaHiking, FaPlaneDeparture, FaCookieBite, FaPuzzlePiece 
+} from 'react-icons/fa';
+
+const hobbyIcons = {
+  "Traveling": FaGlobeAmericas,
+  "Photography": FaCamera,
+  "Music": FaMusic,
+  "Reading": FaBook,
+  "Sports": FaFutbol,
+  "Gaming": FaGamepad,
+  "Movies": FaFilm,
+  "Fitness": FaDumbbell,
+  "Art": FaPalette,
+  "Writing": FaPen,
+};
+
+const HobbiesModal = ({ show, handleClose, userId, currentHobbies = [], onHobbiesUpdate }) => {
+  const [selectedHobbies, setSelectedHobbies] = useState(currentHobbies || []);
+  const [availableHobbies, setAvailableHobbies] = useState(Object.keys(hobbyIcons));
+
+  // Reset selected hobbies when modal opens
+  useEffect(() => {
+    if (show) {
+      setSelectedHobbies(currentHobbies || []);
+    }
+  }, [show, currentHobbies]);
+
+  const toggleHobby = (hobby) => {
+    setSelectedHobbies(prev => 
+      prev.includes(hobby) 
+        ? prev.filter(h => h !== hobby)
+        : [...prev, hobby]
+    );
+  };
+
+  const handleSaveHobbies = async () => {
+    if (selectedHobbies.length < 3) {
+      alert('Please select at least 3 hobbies');
+      return;
+    }
+
+    try {
+      await axios.post(`${process.env.REACT_APP_BACKEND_SERVER_URI}/user/userSetHobbies`, {
+        userId,
+        hobbies: selectedHobbies
+      });
+      onHobbiesUpdate(selectedHobbies);
+      handleClose();
+    } catch (error) {
+      console.error('Error updating hobbies:', error);
+      alert('Failed to update hobbies');
+    }
+  };
+
+  const styles = {
+    hobbyGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(4, 1fr)',
+      gap: '10px',
+      maxHeight: '400px',
+      overflowY: 'auto'
+    },
+    hobbyButton: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      padding: '10px',
+      border: '2px solid transparent',
+      borderRadius: '10px',
+      background: 'rgba(255,255,255,0.05)',
+      cursor: 'pointer',
+      transition: 'all 0.3s'
+    },
+    selectedHobby: {
+      border: '2px solid #61dafb',
+      background: 'rgba(97, 218, 251, 0.1)'
+    },
+    hobbyIcon: {
+      fontSize: '2rem',
+      marginBottom: '10px'
+    }
+  };
+
+  return (
+    <Modal 
+      show={show} 
+      onHide={handleClose} 
+      centered 
+      size="lg"
+      style={{ 
+        background: 'rgba(0,0,0,0.5)' 
+      }}
+    >
+      <Modal.Header 
+        closeButton 
+        style={{ 
+          background: 'linear-gradient(135deg, #1a1a3a, #2b2d42)', 
+          color: 'white' 
+        }}
+      >
+        <Modal.Title>Edit Your Hobbies</Modal.Title>
+      </Modal.Header>
+      <Modal.Body 
+        style={{ 
+          background: '#1a1a3a', 
+          color: 'white',
+          padding: '20px' 
+        }}
+      >
+        <p>Select at least 3 hobbies that represent you:</p>
+        <div style={styles.hobbyGrid}>
+          {availableHobbies.map(hobby => {
+            const Icon = hobbyIcons[hobby];
+            const isSelected = selectedHobbies.includes(hobby);
+            return (
+              <div 
+                key={hobby}
+                style={{
+                  ...styles.hobbyButton,
+                  ...(isSelected ? styles.selectedHobby : {})
+                }}
+                onClick={() => toggleHobby(hobby)}
+              >
+                <Icon 
+                  style={{
+                    ...styles.hobbyIcon,
+                    color: isSelected ? '#61dafb' : '#8888a0'
+                  }} 
+                />
+                <span>{hobby}</span>
+              </div>
+            );
+          })}
+        </div>
+      </Modal.Body>
+      <Modal.Footer 
+        style={{ 
+          background: '#1a1a3a', 
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)' 
+        }}
+      >
+        <Button 
+          variant="secondary" 
+          onClick={handleClose}
+          style={{ 
+            background: 'rgba(255, 255, 255, 0.1)', 
+            border: 'none' 
+          }}
+        >
+          Cancel
+        </Button>
+        <Button 
+          variant="primary" 
+          onClick={handleSaveHobbies}
+          style={{ 
+            background: 'linear-gradient(135deg, #61dafb, #cc5c99)', 
+            border: 'none' 
+          }}
+        >
+          Save Hobbies
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+};
 
 const ProfilePage = () => {
   const [show, setShow] = useState(false);
+  const [showHobbiesModal, setShowHobbiesModal] = useState(false);
   const [user, setUser] = useState({});
   const [imageFile, setImageFile] = useState(null);
   const [profileImage, setProfileImage] = useState("");
+  const [hobbies, setHobbies] = useState([]);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const navigate = useNavigate();
@@ -40,6 +210,7 @@ const ProfilePage = () => {
     const userInfo = getUserInfo();
     setUser(userInfo);
 
+    // Fetch profile image
     axios.get(`${process.env.REACT_APP_BACKEND_SERVER_URI}/user/getUserProfileImage/${userInfo.id}`)
       .then((res) => {
         const fetchedProfileImage = res.data.profileImage || "default-profile-image-url";
@@ -48,6 +219,15 @@ const ProfilePage = () => {
       .catch((error) => {
         console.error("Error fetching profile image:", error);
         setProfileImage("default-profile-image-url");
+      });
+
+    // Fetch user hobbies
+    axios.get(`${process.env.REACT_APP_BACKEND_SERVER_URI}/user/userGetHobbies/${userInfo.id}`)
+      .then((res) => {
+        setHobbies(res.data.hobbies || []);
+      })
+      .catch((error) => {
+        console.error("Error fetching hobbies:", error);
       });
   }, []);
 
@@ -87,6 +267,11 @@ const ProfilePage = () => {
       alert('Error removing profile image');
     }
   };
+
+  const handleHobbiesUpdate = (updatedHobbies) => {
+    setHobbies(updatedHobbies);
+  };
+
   if (!user || !user.id) {
     return (
       <div style={styles.loginPrompt}>
@@ -101,19 +286,29 @@ const ProfilePage = () => {
   const { id, email, username } = user;
 
   const stats = [
-    { icon: Users, label: 'Connections', value: 5 },
+    { 
+      icon: Users, 
+      label: 'Hobbies', 
+      value: hobbies.length, 
+      renderIcons: () => hobbies.slice(0, 3).map(hobby => {
+        const Icon = hobbyIcons[hobby];
+        return Icon ? <Icon key={hobby} style={styles.statIcon} size={20} /> : null;
+      }) 
+    },
     { icon: MessageSquare, label: 'Chats', value: 12 },
     { icon: MapPin, label: 'Found Nearby', value: 3 }
   ];
 
   const handleStatsClick = (label) => {
-    if (label === 'Chats') {
+    if (label === 'Hobbies') {
+      setShowHobbiesModal(true);
+    }
+    else if (label === 'Chats') {
       navigate('/chat'); 
     }
     else if (label === 'Found Nearby') {
       navigate('/findUsersNearby');
     }
-    // Add other conditions here if you want different routes for each stat
   };
 
   return (
@@ -173,14 +368,32 @@ const ProfilePage = () => {
       <div>
 
       <div style={styles.quickStats}>
-        {stats.map(({ icon: Icon, label, value }) => (
-          <div key={label} style={styles.quickStat}>
-            <Icon size={20} style={styles.statIcon} onClick={() => handleStatsClick(label)}/>
-            <span style={styles.quickStatNumber}>{value}</span>
-            <span style={styles.quickStatLabel}>{label}</span>
-          </div>
-        ))}
+          {stats.map(({ icon: Icon, label, value, renderIcons }) => (
+            <div key={label} style={styles.quickStat} onClick={() => handleStatsClick(label)}>
+              {label === 'Hobbies' ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Icon size={20} style={styles.statIcon} />
+                  {renderIcons && renderIcons()}
+                  {hobbies.length === 0 && (
+                    <Edit size={16} style={{ color: '#61dafb', marginLeft: '5px' }} />
+                  )}
+                </div>
+              ) : (
+                <Icon size={20} style={styles.statIcon} />
+              )}
+              <span style={styles.quickStatNumber}>{value}</span>
+              <span style={styles.quickStatLabel}>{label}</span>
+            </div>
+          ))}
       </div>
+
+      <HobbiesModal 
+        show={showHobbiesModal}
+        handleClose={() => setShowHobbiesModal(false)}
+        userId={id}
+        currentHobbies={hobbies}
+        onHobbiesUpdate={handleHobbiesUpdate}
+      />
 
       <div style={styles.mainContent}>
         <div style={styles.infoSection}>
