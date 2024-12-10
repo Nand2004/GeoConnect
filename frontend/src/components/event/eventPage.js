@@ -1,4 +1,4 @@
-import React, { useState, useEffect, mapRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { GoogleMap, LoadScript, Marker, InfoWindow, Circle } from '@react-google-maps/api';
 import EditEventModal from './eventModals/editEventModal';
@@ -55,6 +55,12 @@ const EventPage = () => {
 
   const googleMapsApiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
   const [mapZoom, setMapZoom] = useState(14);
+
+  const mapRef = useRef(null);
+
+  const onLoad = (map) => {
+    mapRef.current = map; // Assign map instance to the ref
+  };
 
   // Get user info on component mount
   useEffect(() => {
