@@ -63,30 +63,35 @@ const FindUsersNearby = () => {
 
   const findUsersNearby = async (latitude, longitude) => {
     try {
+      setLoading(true);
+      setError(null); // Reset any previous errors
+  
+      // Convert hobbies to comma-separated string for query
+      const hobbyQuery = filters.hobbies.length > 0 
+        ? `&hobbies=${filters.hobbies.join(',')}` 
+        : '';
+  
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_SERVER_URI}/user/locationGetNearby?latitude=${latitude}&longitude=${longitude}&distance=${searchDistance}`
+        `${process.env.REACT_APP_BACKEND_SERVER_URI}/user/locationGetNearby?latitude=${latitude}&longitude=${longitude}&distance=${searchDistance}${hobbyQuery}`
       );
-      const users = await response.json();
-
-      // Apply filters based on selected hobbies
-      let filteredUsers = users;
-
-      if (filters.hobbies.length > 0) {
-        // Filter users by hobbies in the frontend
-        filteredUsers = users.filter(user =>
-          // Check if ALL selected hobbies are present in the user's hobbies
-          filters.hobbies.every(hobby => user.hobbies.includes(hobby))
-        );
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        // Handle specific error scenarios
+        setError(data.message);
+        setNearbyUsers([]);
+      } else {
+        setNearbyUsers(data);
       }
-
-      setNearbyUsers(filteredUsers);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching nearby users:", error);
+      setError("An unexpected error occurred");
+      setNearbyUsers([]);
       setLoading(false);
     }
   };
-
   
 
   return (
