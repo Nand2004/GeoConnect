@@ -18,9 +18,7 @@ const FindUsersNearby = () => {
   const [searchDistance, setSearchDistance] = useState(500);
   const [currentUser, setCurrentUser] = useState(null);
   const [isHovered, setIsHovered] = useState(null);
-  const [filters, setFilters] = useState({
-    hobbies: []
-  });
+  const [filters, setFilters] = useState({});
 
 
   const googleMapsApiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
