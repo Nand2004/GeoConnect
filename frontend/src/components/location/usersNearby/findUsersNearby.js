@@ -5,7 +5,6 @@ import { FaMapMarkerAlt, FaUsers, FaSpinner, FaExclamationCircle, FaEnvelope, Fa
 import ChatButton from '../../chat/chatButton/chatButton';
 import getUserInfo from "../../../utilities/decodeJwt";
 import UserHobbies from '../usersNearby/userHobbies'; // Import the new component
-import UserFilterComponent from './userFilterComponent';
 
 
 const FindUsersNearby = () => {
@@ -18,8 +17,6 @@ const FindUsersNearby = () => {
   const [searchDistance, setSearchDistance] = useState(500);
   const [currentUser, setCurrentUser] = useState(null);
   const [isHovered, setIsHovered] = useState(null);
-  const [filters, setFilters] = useState({});
-
 
   const googleMapsApiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
@@ -61,47 +58,21 @@ const FindUsersNearby = () => {
 
   const findUsersNearby = async (latitude, longitude) => {
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_SERVER_URI}/user/locationGetNearby?latitude=${latitude}&longitude=${longitude}&distance=${searchDistance}`
-      );
-      const users = await response.json();
-
-      // Apply filters based on selected hobbies
-      let filteredUsers = users;
-
-      if (filters.hobbies.length > 0) {
-        // Filter users by hobbies in the frontend
-        filteredUsers = users.filter(user =>
-          // Check if ALL selected hobbies are present in the user's hobbies
-          filters.hobbies.every(hobby => user.hobbies.includes(hobby))
-        );
-      }
-
-      setNearbyUsers(filteredUsers);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching nearby users:", error);
-      setLoading(false);
+      const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_SERVER_URI}/user/locationGetNearby`, {
+        params: { latitude, longitude, distance: searchDistance },
+      });
+      setNearbyUsers(data);
+      if (data.length === 0) setMessage('No users found nearby.');
+    } catch {
+      setError('Error finding nearby users.');
     }
+    setLoading(false);
   };
-
-  
 
   return (
     <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.title}>Find Users Nearby</h2>
-
-        {/* Updated UserFilterComponent */}
-        <UserFilterComponent 
-          onFilterChange={(newFilters) => {
-            setFilters(newFilters);
-            // Trigger a new search with the updated filters
-            if (location.latitude && location.longitude) {
-              findUsersNearby(location.latitude, location.longitude);
-            }
-          }}
-        />
 
         <div style={styles.controls}>
           <div style={styles.rangeContainer}>
