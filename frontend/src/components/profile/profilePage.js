@@ -438,15 +438,7 @@ const ProfilePage = () => {
             </div>
 
             <div style={styles.actionsGrid}>
-              <button style={styles.actionButton} onClick={() => alert("Coming soon!")}>
-                <Lock size={20} />
-                Privacy Settings
-              </button>
-              <button style={styles.actionButton} onClick={() => alert("Coming soon!")}>
-                <Settings size={20} />
-                Edit Profile
-              </button>
-              <button style={{ ...styles.actionButton, ...styles.logoutButton }} onClick={handleShow}>
+              <button style={{ ...styles.actionButton, ...styles.logoutButton, gridColumn: 'span 3' }} onClick={handleShow}>
                 <LogOut size={20} />
                 Log Out
               </button>
@@ -669,9 +661,10 @@ const styles = {
     },
   },
   logoutButton: {
-    background: "rgba(255, 75, 75, 0.1)",
+    background: "rgba(255, 50, 50, 0.1)",
+    color: "#ff5050",
     '&:hover': {
-      background: "rgba(255, 75, 75, 0.2)",
+      background: "rgba(255, 50, 50, 0.2)",
     },
   },
   actionIcon: {
